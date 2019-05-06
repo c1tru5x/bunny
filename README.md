@@ -1,1 +1,7 @@
 # CS:GO EXTERNAL HACK
+
+Supoporting: BHOP
+	     NOFLASH
+	     RADARHACK
+	     CHAMS
+	     TRIGGERBOT
