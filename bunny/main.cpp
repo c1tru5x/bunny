@@ -69,11 +69,11 @@ void bunny()
 
 void flash()
 {
-	int newAlphaFlash = 90;
+	float newAlphaFlash = .2f;
 
 	if (bflash)
 	{
-		if (myPlayer.flash > 90)
+		if (myPlayer.flash > .5f)
 		{
 			WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(myPlayer.dwLocalP + flashAlpha), &newAlphaFlash, sizeof(newAlphaFlash), 0);
 		}
