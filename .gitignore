@@ -2,6 +2,11 @@
 # Created by https://www.gitignore.io/api/c++,visualstudio
 # Edit at https://www.gitignore.io/?templates=c++,visualstudio
 
+
+###Special for this hack###
+bunnyhop.h
+bunnyhop.cpp
+
 ### C++ ###
 # Prerequisites
 *.d
