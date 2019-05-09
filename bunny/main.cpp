@@ -113,9 +113,10 @@ void drawChams()
 	{
 		DWORD entity = 0x0;
 		int enemyTeam = 0; //actually EntityTeam
-		byte rgbColor[4] = { 0,255,0,255 };
-		byte rgbColorEnemy[4] = { 255,0,255,255 };
-		float brightness = 65.f;
+		//no need for alpha value because brightness does the work for us
+		byte rgbColor[3]= { 33,103,255 }; //cyan
+		byte rgbColorEnemy[3] = { 255,25,155}; //pink
+		float brightness = 65.f; //65 is very bright
 		DWORD thisPtr = (int)(fProcess.__dwordEngine + dwModelAmb - 0x2c);
 		DWORD xored = *(DWORD*)&brightness ^ thisPtr;
 		
@@ -125,15 +126,14 @@ void drawChams()
 			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwTeam), &enemyTeam, sizeof(int), 0);
 			if (entity != NULL && enemyTeam != myPlayer.iTeam)
 			{
-				WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwCham), &rgbColorEnemy, sizeof(rgbColorEnemy), 0);
-				WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordEngine + dwModelAmb), &xored, sizeof(int), 0);
-				
+				WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwCham), &rgbColorEnemy, sizeof(rgbColorEnemy), 0);				
 			}
 			else if (entity != NULL && enemyTeam == myPlayer.iTeam)
 			{
 				WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwCham), &rgbColor, sizeof(rgbColor), 0);
 			}
 		}
+		WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordEngine + dwModelAmb), &xored, sizeof(int), 0);
 	}
 	else
 	{
@@ -152,14 +152,13 @@ void drawChams()
 			if (entity != NULL && enemyTeam != myPlayer.iTeam)
 			{
 				WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwCham), &rgbColorEnemy, sizeof(rgbColorEnemy), 0);
-				WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordEngine + dwModelAmb), &resetXored, sizeof(int), 0);
 			}
 			else if (entity != NULL && enemyTeam == myPlayer.iTeam)
 			{
 				WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwCham), &rgbColor, sizeof(rgbColor), 0);
-				WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordEngine + dwModelAmb), &resetXored, sizeof(int), 0);
 			}
 		}
+		WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordEngine + dwModelAmb), &resetXored, sizeof(int), 0);
 	}	
 }
 
