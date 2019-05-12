@@ -5,7 +5,7 @@ CHackProcess fProcess;
 
 using namespace std;
 
-#define onGround		257
+#define onGround 257
 #define crouchedGround	263
 
 const DWORD dwPlayerBase = 0xCEB9BC;
@@ -114,8 +114,8 @@ void drawChams()
 		DWORD entity = 0x0;
 		int enemyTeam = 0; //actually EntityTeam
 		//no need for alpha value because brightness does the work for us
-		byte rgbColor[3]= { 33,103,255 }; //cyan
-		byte rgbColorEnemy[3] = { 255,25,155}; //pink
+		byte rgbColor[3]= {33, 103, 255}; //cyan
+		byte rgbColorEnemy[3] = {255, 25, 155}; //pink
 		float brightness = 65.f; //65 is very bright
 		DWORD thisPtr = (int)(fProcess.__dwordEngine + dwModelAmb - 0x2c);
 		DWORD xored = *(DWORD*)&brightness ^ thisPtr;
@@ -140,8 +140,8 @@ void drawChams()
 		//reset
 		DWORD entity = 0x0;
 		int enemyTeam = 0;
-		byte rgbColor[4] = { 255,255,255,255 };
-		byte rgbColorEnemy[4] = { 255,255,255,255 };
+		byte rgbColor[3] = {255, 255, 255};
+		byte rgbColorEnemy[3] = {255, 255, 255};
 		float resetBrightness = 0.f;
 		DWORD thisPtr = (int)(fProcess.__dwordEngine + dwModelAmb - 0x2c);
 		DWORD resetXored = *(DWORD*)&resetBrightness ^ thisPtr;
@@ -180,9 +180,9 @@ void Trigger()
 		}
 		if (myPlayer.iCrossID > 0 && enemyTeam != myPlayer.iTeam)
 		{
-			Sleep(20);
+			Sleep(14); 
 			mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
-			Sleep(20);
+			Sleep(10); 
 			mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
 		}
 	}
@@ -202,7 +202,7 @@ int main(void)
 	}
 	else
 	{
-		cout << "Bunny by c1tru5x - NOW WITH GLOWY SHIT!\n UPDATED: 08.MAI.19" << endl;
+		cout << "Bunny by c1tru5x - NOW WITH GLOWY SHIT!\nUPDATED: 12.MAI.19" << endl;
 		cout << "F11 to close!" << endl;
 		cout << "[F1] BHOP use SPACE" << endl;
 		cout << "[F2] No Flash!" << endl;
@@ -273,17 +273,7 @@ int main(void)
 					Beep(400, 200);
 				}
 			}
-
-			if (bBhop == true)
-			{
-				if (GetAsyncKeyState(VK_SPACE))
-				{
- 					bunny();
-				}
-			}
-			flash();
-			radar();
-			drawChams();
+			//Functioncall
 			if (bTrigger == true)
 			{
 				if (GetAsyncKeyState(VK_LMENU))
@@ -291,6 +281,16 @@ int main(void)
 					Trigger();
 				}
 			}
+			if (bBhop == true)
+			{
+				if (GetAsyncKeyState(VK_SPACE))
+				{
+					bunny();
+				}
+			}
+			flash();
+			radar();
+			drawChams();
 			Sleep(1);
 		}
 	}
