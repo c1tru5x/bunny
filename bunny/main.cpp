@@ -9,8 +9,8 @@ using namespace std;
 #define crouchedGround	263
 
 const DWORD dwPlayerBase = 0xCF1A3C;
-const DWORD dwJump = 0x51A70B0;
-const DWORD entityList = 0x4D03B44;
+const DWORD dwJump = 0x51A7090;
+const DWORD entityList = 0x4D03B24;
 const DWORD m_fFlags = 0x104;
 const DWORD flashAlpha = 0xA3F0;
 const DWORD isSpotted = 0x93D;
@@ -202,7 +202,7 @@ int main(void)
 	}
 	else
 	{
-		cout << "Bunny by c1tru5x - NOW WITH GLOWY SHIT!\nUPDATED: 15.MAI.19" << endl;
+		cout << "Bunny by c1tru5x - NOW WITH GLOWY SHIT!\nUPDATED: 16.MAI.19" << endl;
 		cout << "F11 to close!" << endl;
 		cout << "[F1] BHOP use SPACE" << endl;
 		cout << "[F2] No Flash!" << endl;
