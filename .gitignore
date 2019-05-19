@@ -1,6 +1,6 @@
 
-# Created by https://www.gitignore.io/api/c++,visualstudio
-# Edit at https://www.gitignore.io/?templates=c++,visualstudio
+# Created by https://www.gitignore.io/api/c++,executable,visualstudio
+# Edit at https://www.gitignore.io/?templates=c++,executable,visualstudio
 
 
 ###Special for this hack###
@@ -40,6 +40,16 @@ bunnyhop.cpp
 *.exe
 *.out
 *.app
+
+### Executable ###
+*.bat
+*.cgi
+*.com
+*.gadget
+*.jar
+*.pif
+*.vb
+*.wsf
 
 ### VisualStudio ###
 ## Ignore Visual Studio temporary files, build results, and
@@ -133,7 +143,6 @@ StyleCopReport.xml
 *.svclog
 *.scc
 
-#blabla
 # Chutzpah Test files
 _Chutzpah*
 
@@ -386,5 +395,4 @@ healthchecksdb
 # Backup folder for Package Reference Convert tool in Visual Studio 2017
 MigrationBackup/
 
-# End of https://www.gitignore.io/api/c++,visualstudio
-
+# End of https://www.gitignore.io/api/c++,executable,visualstudio
