@@ -8,9 +8,9 @@ using namespace std;
 constexpr auto onGround = 257;
 constexpr auto crouchedGround = 263;
 
-const DWORD dwPlayerBase = 0xCF1A4C;
-const DWORD dwJump = 0x51A715C;
-const DWORD entityList = 0x4D03AA4;
+const DWORD dwPlayerBase = 0xCF2A3C;
+const DWORD dwJump = 0x51A812C;
+const DWORD entityList = 0x4D04A74;
 const DWORD m_fFlags = 0x104;
 const DWORD flashAlpha = 0xA3F0;
 const DWORD isSpotted = 0x93D;
@@ -18,6 +18,9 @@ const DWORD dwCham = 0x70;
 const DWORD dwTeam = 0xF4;
 const DWORD dwCrossID = 0xB3AC;
 const DWORD dwModelAmb = 0x58FD1C; //for brightness
+const DWORD dwLeft = 0x313616C; //for auto strafe
+const DWORD dwRight = 0x3136190; //for auto strafe
+
 
 bool bBhop = false;
 bool bflash = false;
@@ -202,7 +205,8 @@ int main(void)
 	}
 	else
 	{
-		cout << "Bunny by c1tru5x\nUPDATED: 30.MAY.2019" << endl;
+		cout << "Bunny by c1tru5x" <<endl;
+		cout << "Updated 12.JUN.2019" << endl;
 		cout << "F11 to close!" << endl;
 		cout << "[F1] BHOP use SPACE" << endl;
 		cout << "[F2] No Flash!" << endl;
