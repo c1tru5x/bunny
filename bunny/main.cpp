@@ -38,16 +38,17 @@ struct myPlayer_T
 	int iTeam = 0;
 	int iHealth = 0;
 	int iCrossID = 0;
+
 	void ReadInfo()
 	{
 		//Read this all the time..
-		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwPlayerBase), &dwLocalP, sizeof(DWORD), 0);
-		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + m_fFlags), &flag, sizeof(int), 0);
-		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + flashAlpha), &flash, sizeof(int), 0);
-		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + dwTeam), &iTeam, sizeof(int), 0);
-		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + dwCrossID), &iCrossID, sizeof(int), 0);
+		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwPlayerBase), &dwLocalP, sizeof(DWORD), nullptr);
+		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + m_fFlags), &flag, sizeof(int), nullptr);
+		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + flashAlpha), &flash, sizeof(int), nullptr);
+		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + dwTeam), &iTeam, sizeof(int), nullptr);
+		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + dwCrossID), &iCrossID, sizeof(int), nullptr);
 	}
-}myPlayer;
+} myPlayer;
 
 void bunny()
 {
@@ -58,18 +59,13 @@ void bunny()
 
 		if (myPlayer.flag == onGround || myPlayer.flag == crouchedGround)
 		{
-			WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwJump), &doJump, sizeof(doJump), 0);
+			WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwJump), &doJump, sizeof(doJump), nullptr);
 		}
 		else
 		{
-			WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwJump), &stopJump, sizeof(stopJump), 0);
+			WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwJump), &stopJump, sizeof(stopJump), nullptr);
 		}
 	}
-	else
-	{
-		return;
-	}
-	
 }
 
 void flash()
@@ -80,12 +76,8 @@ void flash()
 	{
 		if (myPlayer.flash > .5f)
 		{
-			WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(myPlayer.dwLocalP + flashAlpha), &newAlphaFlash, sizeof(newAlphaFlash), 0);
+			WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(myPlayer.dwLocalP + flashAlpha), &newAlphaFlash, sizeof(newAlphaFlash), nullptr);
 		}
-	}
-	else
-	{
-		return;
 	}
 }
 
@@ -95,20 +87,18 @@ void radar()
 	{
 		DWORD entity = 0x0;
 		bool bSpot = true;
-		for (int i = 0; i < 64; i++)
+
+		for (short i = 0; i < 64; i++)
 		{
 			//Radar
-			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + entityList + (i * 0x10)), &entity, sizeof(DWORD), 0);
+			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + entityList + (i * 0x10)), &entity, sizeof(DWORD), nullptr);
+
 			//Spot
 			if (entity != NULL)
 			{
-				WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + isSpotted), &bSpot, sizeof(bool), 0);
+				WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + isSpotted), &bSpot, sizeof(bool), nullptr);
 			}
 		}
-	}
-	else
-	{
-		return;
 	}
 }
 
@@ -117,28 +107,33 @@ void drawChams()
 	if (bChams)
 	{
 		DWORD entity = 0x0;
-		int enemyTeam = 0; //actually EntityTeam
+
+		//actually EntityTeam
+		int enemyTeam = 0;
+
 		//no need for alpha value because brightness does the work for us
-		byte rgbColor[3]= {33, 103, 255}; //cyan
+		byte rgbColor[3] = {33, 103, 255}; //cyan
 		byte rgbColorEnemy[3] = {255, 25, 155}; //pink
 		float brightness = 65.f; //65 is very bright
-		DWORD thisPtr = (int)(fProcess.__dwordEngine + dwModelAmb - 0x2c);
+		const DWORD thisPtr = (int)(fProcess.__dwordEngine + dwModelAmb - 0x2c);
 		DWORD xored = *(DWORD*)&brightness ^ thisPtr;
-		
+
 		for (int i = 0; i < 64; i++)
 		{
-			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + entityList + (i * 0x10)), &entity, sizeof(DWORD), 0);
-			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwTeam), &enemyTeam, sizeof(int), 0);
+			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + entityList + (i * 0x10)),&entity, sizeof(DWORD), nullptr);
+			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwTeam), &enemyTeam, sizeof(int), nullptr);
+
 			if (entity != NULL && enemyTeam != myPlayer.iTeam)
 			{
-				WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwCham), &rgbColorEnemy, sizeof(rgbColorEnemy), 0);				
+				WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwCham), &rgbColorEnemy, sizeof(rgbColorEnemy), nullptr);
 			}
 			else if (entity != NULL && enemyTeam == myPlayer.iTeam)
 			{
-				WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwCham), &rgbColor, sizeof(rgbColor), 0);
+				WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwCham), &rgbColor, sizeof(rgbColor), nullptr);
 			}
 		}
-		WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordEngine + dwModelAmb), &xored, sizeof(int), 0);
+
+		WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordEngine + dwModelAmb), &xored, sizeof(int),nullptr);
 	}
 	else
 	{
@@ -148,52 +143,58 @@ void drawChams()
 		byte rgbColor[3] = {255, 255, 255};
 		byte rgbColorEnemy[3] = {255, 255, 255};
 		float resetBrightness = 0.f;
-		DWORD thisPtr = (int)(fProcess.__dwordEngine + dwModelAmb - 0x2c);
+		const DWORD thisPtr = (int)(fProcess.__dwordEngine + dwModelAmb - 0x2c);
 		DWORD resetXored = *(DWORD*)&resetBrightness ^ thisPtr;
+
 		for (int i = 0; i < 64; i++)
 		{
-			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + entityList + (i * 0x10)), &entity, sizeof(DWORD), 0);
-			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwTeam), &enemyTeam, sizeof(int), 0);
+			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + entityList + (i * 0x10)),&entity, sizeof(DWORD), nullptr);
+
+			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwTeam), &enemyTeam, sizeof(int), nullptr);
+
 			if (entity != NULL && enemyTeam != myPlayer.iTeam)
 			{
-				WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwCham), &rgbColorEnemy, sizeof(rgbColorEnemy), 0);
+				WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwCham), &rgbColorEnemy, sizeof(rgbColorEnemy), nullptr);
 			}
 			else if (entity != NULL && enemyTeam == myPlayer.iTeam)
 			{
-				WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwCham), &rgbColor, sizeof(rgbColor), 0);
+				WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwCham), &rgbColor, sizeof(rgbColor), nullptr);
 			}
 		}
-		WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordEngine + dwModelAmb), &resetXored, sizeof(int), 0);
-	}	
+
+		WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordEngine + dwModelAmb), &resetXored, sizeof(int), nullptr);
+	}
 }
 
-void Trigger()
+void trigger()
 {
 	DWORD aimedEntity = 0x0;
 	DWORD entity = 0x0;
 	int enemyTeam = 0;
+
 	if (bTrigger)
 	{
-		int AimedAt = myPlayer.iCrossID;
-		if (AimedAt > 0 && AimedAt < 64) 
+		const int AIMED_AT = myPlayer.iCrossID;
+
+		if (AIMED_AT > 0 && AIMED_AT < 64)
 		{
-			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + entityList + (AimedAt - 1) * (0x10)), &aimedEntity, sizeof(DWORD), 0);
+			ReadProcessMemory(fProcess.__HandleProcess,
+			                  (PBYTE*)(fProcess.__dwordClient + entityList + (AIMED_AT - 1) * (0x10)), &aimedEntity,
+			                  sizeof(DWORD), nullptr);
 		}
+
 		for (int i = 0; i < 64; i++)
 		{
-			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(aimedEntity + dwTeam), &enemyTeam, sizeof(int), 0);
+			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(aimedEntity + dwTeam), &enemyTeam, sizeof(int), nullptr);
 		}
+
 		if (myPlayer.iCrossID > 0 && enemyTeam != myPlayer.iTeam)
 		{
-			Sleep(14); 
+			Sleep(14);
 			mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
-			Sleep(10); 
+			Sleep(10);
 			mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
 		}
-	}
-	else
-	{
-		return;
 	}
 }
 
@@ -202,29 +203,37 @@ void fakeLag()
 	byte lagON = 0;
 	byte lagFalse = 1;
 
-	if(bFakeL)
+	if (bFakeL)
 	{
-	WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordEngine + bSendPackets), &lagON, sizeof(byte), 0);
-	Sleep(125); //1000ms/64 tick = 15.6 ..  15.6 * 8 Bit = 125
-	WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordEngine + bSendPackets), &lagFalse, sizeof(byte), 0);
+		WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordEngine + bSendPackets), &lagON,sizeof(byte), nullptr);
+
+		Sleep(125); //1000ms/64 tick = 15.6 ..  15.6 * 8 Bit = 125
+		WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordEngine + bSendPackets), &lagFalse,sizeof(byte), nullptr);
 	}
 	else
 	{
-		WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordEngine + bSendPackets), &lagFalse, sizeof(byte), 0);
+		WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordEngine + bSendPackets), &lagFalse, sizeof(byte), nullptr);
+	}
+}
+
+
 	}
 }
 
 int main(void)
 {
-	fProcess.RunProcess();    //always forgetting this line...
-	if (fProcess.__HWNDCSgo == NULL) //if window not found
+	//always forgetting this line...
+	fProcess.RunProcess();
+
+	//if window not found
+	if (fProcess.__HWNDCSgo == nullptr)
 	{
 		cout << "Process 'csgo.exe' not found!" << endl;
 		cout << "Last Error: " << GetLastError() << endl;
 	}
 	else
 	{
-		cout << "Bunny by c1tru5x" <<endl;
+		cout << "Bunny by c1tru5x" << endl;
 		cout << "Updated 17.JUN.2019" << endl;
 		cout << "F11 to close!" << endl;
 		cout << "[NUM1] BHOP use SPACE" << endl;
