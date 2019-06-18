@@ -20,6 +20,7 @@ const DWORD dwCrossID = 0xB3AC;
 const DWORD dwModelAmb = 0x58FD1C; //for brightness
 const DWORD dwLeft = 0x313616C; //for auto strafe
 const DWORD dwRight = 0x3136190; //for auto strafe
+const DWORD bSendPackets = 0xD280A; //for lag (in BYTE!)
 
 
 bool bBhop = false;
@@ -27,6 +28,7 @@ bool bflash = false;
 bool bRadar = false;
 bool bChams = false;
 bool bTrigger = false;
+bool bFakeL = false;
 
 struct myPlayer_T
 {
@@ -195,6 +197,23 @@ void Trigger()
 	}
 }
 
+void fakeLag()
+{
+	byte lagON = 0;
+	byte lagFalse = 1;
+
+	if(bFakeL)
+	{
+	WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordEngine + bSendPackets), &lagON, sizeof(byte), 0);
+	Sleep(125); //1000ms/64 tick = 15.6 ..  15.6 * 8 Bit = 125
+	WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordEngine + bSendPackets), &lagFalse, sizeof(byte), 0);
+	}
+	else
+	{
+		WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordEngine + bSendPackets), &lagFalse, sizeof(byte), 0);
+	}
+}
+
 int main(void)
 {
 	fProcess.RunProcess();    //always forgetting this line...
@@ -206,18 +225,18 @@ int main(void)
 	else
 	{
 		cout << "Bunny by c1tru5x" <<endl;
-		cout << "Updated 12.JUN.2019" << endl;
+		cout << "Updated 17.JUN.2019" << endl;
 		cout << "F11 to close!" << endl;
-		cout << "[F1] BHOP use SPACE" << endl;
-		cout << "[F2] No Flash!" << endl;
-		cout << "[F3] Radar" << endl;
-		cout << "[F4] Chams" << endl;
-		cout << "[F5] Trigger use ALT" << endl;
+		cout << "[NUM1] BHOP use SPACE" << endl;
+		cout << "[NUM2] No Flash!" << endl;
+		cout << "[NUM3] Radar" << endl;
+		cout << "[NUM4] Chams" << endl;
+		cout << "[NUM5] Trigger use ALT" << endl;
 
 		while (!GetAsyncKeyState(VK_F11))
 		{
 			myPlayer.ReadInfo();
-			if (GetAsyncKeyState(VK_F1))
+			if (GetAsyncKeyState(VK_NUMPAD1))
 			{
 				bBhop = !bBhop;
 				if (bBhop == false)
@@ -229,7 +248,7 @@ int main(void)
 					Beep(400, 200);
 				}
 			}
-			if (GetAsyncKeyState(VK_F2))
+			if (GetAsyncKeyState(VK_NUMPAD2))
 			{
 				bflash = !bflash;
 				if (bflash == false)
@@ -241,7 +260,7 @@ int main(void)
 					Beep(400, 200);
 				}
 			}
-			if (GetAsyncKeyState(VK_F3))
+			if (GetAsyncKeyState(VK_NUMPAD3))
 			{
 				bRadar = !bRadar;
 				if (bRadar == false)
@@ -253,7 +272,7 @@ int main(void)
 					Beep(400, 200);
 				}
 			}
-			if (GetAsyncKeyState(VK_F4))
+			if (GetAsyncKeyState(VK_NUMPAD4))
 			{
 				bChams = !bChams;
 				if (bChams == false)
@@ -265,10 +284,22 @@ int main(void)
 					Beep(400, 200);
 				}
 			}
-			if (GetAsyncKeyState(VK_F5))
+			if (GetAsyncKeyState(VK_NUMPAD5))
 			{
 				bTrigger = !bTrigger;
 				if (bTrigger == false)
+				{
+					Beep(250, 200);
+				}
+				else
+				{
+					Beep(400, 200);
+				}
+			}
+			if (GetAsyncKeyState(VK_NUMPAD6))
+			{
+				bFakeL = !bFakeL;
+				if (bFakeL == false)
 				{
 					Beep(250, 200);
 				}
@@ -295,6 +326,7 @@ int main(void)
 			flash();
 			radar();
 			drawChams();
+			fakeLag();
 			Sleep(1);
 		}
 	}
