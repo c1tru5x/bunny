@@ -216,7 +216,25 @@ void fakeLag()
 	}
 }
 
+void onSound()
+{
+	Beep(250, 200);
+}
 
+void offSound()
+{
+	Beep(400, 200);
+}
+
+void playSound(const bool state)
+{
+	if (!state)
+	{
+		onSound();
+	}
+	else
+	{
+		offSound();
 	}
 }
 
@@ -245,97 +263,71 @@ int main(void)
 		while (!GetAsyncKeyState(VK_F11))
 		{
 			myPlayer.ReadInfo();
+
 			if (GetAsyncKeyState(VK_NUMPAD1))
 			{
 				bBhop = !bBhop;
-				if (bBhop == false)
-				{
-					Beep(250, 200);
-				}
-				else
-				{
-					Beep(400, 200);
-				}
+
+				playSound(bBhop);			
 			}
+
 			if (GetAsyncKeyState(VK_NUMPAD2))
 			{
 				bflash = !bflash;
-				if (bflash == false)
-				{
-					Beep(250, 200);
-				}
-				else
-				{
-					Beep(400, 200);
-				}
+
+				playSound(bflash);
 			}
+
 			if (GetAsyncKeyState(VK_NUMPAD3))
 			{
 				bRadar = !bRadar;
-				if (bRadar == false)
-				{
-					Beep(250, 200);
-				}
-				else
-				{
-					Beep(400, 200);
-				}
+
+				playSound(bRadar);
 			}
+
 			if (GetAsyncKeyState(VK_NUMPAD4))
 			{
 				bChams = !bChams;
-				if (bChams == false)
-				{
-					Beep(250, 200);
-				}
-				else
-				{
-					Beep(400, 200);
-				}
+
+				playSound(bChams);
 			}
+
 			if (GetAsyncKeyState(VK_NUMPAD5))
 			{
 				bTrigger = !bTrigger;
-				if (bTrigger == false)
-				{
-					Beep(250, 200);
-				}
-				else
-				{
-					Beep(400, 200);
-				}
+
+				playSound(bTrigger);
 			}
+
 			if (GetAsyncKeyState(VK_NUMPAD6))
 			{
 				bFakeL = !bFakeL;
-				if (bFakeL == false)
-				{
-					Beep(250, 200);
-				}
-				else
-				{
-					Beep(400, 200);
-				}
+
+				playSound(bFakeL);
 			}
-			//Functioncall
-			if (bTrigger == true)
+
+			// Function call
+			if (bTrigger)
 			{
 				if (GetAsyncKeyState(VK_LMENU))
 				{
-					Trigger();
+					trigger();
 				}
 			}
-			if (bBhop == true)
+
+			if (bBhop)
 			{
 				if (GetAsyncKeyState(VK_SPACE))
 				{
 					bunny();
 				}
 			}
+
 			flash();
 			radar();
 			drawChams();
 			fakeLag();
+
 			Sleep(1);
 		}
 	}
