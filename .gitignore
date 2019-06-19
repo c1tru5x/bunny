@@ -2,7 +2,11 @@
 # Created by https://www.gitignore.io/api/c++,executable,visualstudio
 # Edit at https://www.gitignore.io/?templates=c++,executable,visualstudio
 
-
+###debugfiles
+*.tlog
+*.obj
+*.idb
+*.pdb
 ###Special for this hack###
 bunnyhop.h
 bunnyhop.cpp
