@@ -9,8 +9,8 @@ constexpr auto onGround = 257;
 constexpr auto crouchedGround = 263;
 
 const DWORD dwPlayerBase = 0xCF2A3C;
-const DWORD dwJump = 0x51A81DC;
-const DWORD entityList = 0x4D04B24;
+const DWORD dwJump = 0x51A81BC;
+const DWORD entityList = 0x4D04B04;
 const DWORD m_fFlags = 0x104;
 const DWORD flashAlpha = 0xA3F0;
 const DWORD isSpotted = 0x93D;
@@ -18,9 +18,9 @@ const DWORD dwCham = 0x70;
 const DWORD dwTeam = 0xF4;
 const DWORD dwCrossID = 0xB3AC;
 const DWORD dwModelAmb = 0x58FD1C; //for brightness
-const DWORD dwLeft = 0x313624C; //for auto strafe
-const DWORD dwRight = 0x3136240; //for auto strafe
-const DWORD bSendPackets = 0xD280A; //for lag (in BYTE!)
+const DWORD dwLeft = 0x313622C; //for auto strafe
+const DWORD dwRight = 0x3136220; //for auto strafe
+const DWORD bSendPackets = 0xD286A; //for lag (in BYTE!)
 const DWORD dwHealth = 0x100; 
 const DWORD dwMouseEnable = 0xCF8588; //for not jumping when chatting in window
 const DWORD dwVecVelocity = 0x114;
@@ -239,7 +239,7 @@ int main(void)
 	else
 	{
 		std::cout << "Bunny by c1tru5x" << std::endl;
-		std::cout << "Updated 19.JUN.2019" << std::endl;
+		std::cout << "Updated 20.JUN.2019" << std::endl;
 		std::cout << "F11 to close!" << std::endl;
 		std::cout << "[NUM1] BHOP use SPACE" << std::endl;
 		std::cout << "[NUM2] No Flash!" << std::endl;
