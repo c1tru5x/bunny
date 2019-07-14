@@ -24,6 +24,8 @@ const DWORD bSendPackets = 0xD286A; //for lag (in BYTE!)
 const DWORD dwHealth = 0x100; 
 const DWORD dwMouseEnable = 0xCF8588; //for not jumping when chatting in window
 const DWORD dwVecVelocity = 0x114;
+const DWORD bIsDefusing = 0x3918;
+const DWORD bHasDefKit = 0xB350;
 
 
 bool bBhop = false;
@@ -32,6 +34,7 @@ bool bRadar = false;
 bool bChams = false;
 bool bTrigger = false;
 bool bFakeL = false;
+bool bDefuse = false;
 
 struct myPlayer_T
 {
@@ -131,10 +134,12 @@ void drawChams()
 	if (bChams)
 	{
 		DWORD entity = 0x0;
+		bool hasKit = 0;
 		int enemyTeam = 0; //actually EntityTeam
 		//no need for alpha value because brightness does the work for us
 		byte rgbColor[3]= {33, 103, 255}; //cyan
 		byte rgbColorEnemy[3] = {255, 25, 155}; //pink
+		byte rgbColorEnemyDefuser[3] = { 255, 0, 0 }; //pure red
 		float brightness = 15.f; //65 is very bright
 		DWORD thisPtr = (int)(fProcess.__dwordEngine + dwModelAmb - 0x2c);
 		DWORD xored = *(DWORD*)&brightness ^ thisPtr;
@@ -143,9 +148,18 @@ void drawChams()
 		{
 			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + entityList + (i * 0x10)), &entity, sizeof(DWORD), 0);
 			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwTeam), &enemyTeam, sizeof(int), 0);
+			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + bHasDefKit), &hasKit, sizeof(bool), 0);
 			if (entity != NULL && enemyTeam != myPlayer.iTeam)
 			{
-				WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwCham), &rgbColorEnemy, sizeof(rgbColorEnemy), 0);				
+				//Bomb Boi
+				if (hasKit)
+				{
+					WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwCham), &rgbColorEnemyDefuser, sizeof(rgbColorEnemyDefuser), 0);
+				}
+				else
+				{
+					WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwCham), &rgbColorEnemy, sizeof(rgbColorEnemy), 0);
+				}
 			}
 			else if (entity != NULL && enemyTeam == myPlayer.iTeam)
 			{
@@ -219,12 +233,39 @@ void fakeLag()
 	if(bFakeL)
 	{
 	WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordEngine + bSendPackets), &lagON, sizeof(byte), 0);
-	Sleep(125); //1000ms/64 tick = 15.6 ..  15.6 * 8 Bit = 125
+	Sleep(125); //1000ms/64 tick = 15.6 ..  15.6 * 8 Bit = 125**
 	WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordEngine + bSendPackets), &lagFalse, sizeof(byte), 0);
 	}
 	else
 	{
 		WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordEngine + bSendPackets), &lagFalse, sizeof(byte), 0);
+	}
+}
+
+void checkDefuse()
+{
+	DWORD entity = 0x0;
+	int enemyTeam = 0; //actually EntityTeam
+	bool defusing = 0;
+	bool hasKit = 0;
+
+	for (int i = 0; i < 64; i++)
+	{
+		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + entityList + (i * 0x10)), &entity, sizeof(DWORD), 0);
+		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwTeam), &enemyTeam, sizeof(int), 0);
+		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + bIsDefusing), &defusing, sizeof(bool), 0);
+		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + bHasDefKit), &hasKit, sizeof(bool), 0);
+		if (entity != NULL && enemyTeam != myPlayer.iTeam)
+		{
+			if (defusing && hasKit)
+			{
+				Beep(550, 70); //lower interval if has defuserkit and higher freq
+			}
+			if (defusing && !hasKit)
+			{
+				Beep(350, 120);
+			}
+		}
 	}
 }
 
@@ -239,13 +280,15 @@ int main(void)
 	else
 	{
 		std::cout << "Bunny by c1tru5x" << std::endl;
-		std::cout << "Updated 20.JUN.2019" << std::endl;
+		std::cout << "Updated 14.JULY.2019" << std::endl;
 		std::cout << "F11 to close!" << std::endl;
 		std::cout << "[NUM1] BHOP use SPACE" << std::endl;
 		std::cout << "[NUM2] No Flash!" << std::endl;
 		std::cout << "[NUM3] Radar" << std::endl;
 		std::cout << "[NUM4] Chams" << std::endl;
 		std::cout << "[NUM5] Trigger use ALT" << std::endl;
+		std::cout << "[NUM6] FakeLag" << std::endl;
+		std::cout << "[NUM7] Check for Defuse" << std::endl;
 
 		while (!GetAsyncKeyState(VK_F11))
 		{
@@ -322,6 +365,18 @@ int main(void)
 					Beep(400, 200);
 				}
 			}
+			if (GetAsyncKeyState(VK_NUMPAD7))
+			{
+				bDefuse = !bDefuse;
+				if (bDefuse == false)
+				{
+					Beep(250, 200);
+				}
+				else
+				{
+					Beep(400, 200);
+				}
+			}
 			//Functioncall
 			if (bTrigger == true)
 			{
@@ -337,11 +392,24 @@ int main(void)
 					bunny();
 				}
 			}
-			flash();
-			radar();
-			drawChams();
-			fakeLag();
-			Sleep(1);
+			if (bflash == true)
+			{
+				flash();
+			}
+			if (bRadar == true)
+			{
+				radar();
+			}
+			if (bFakeL == true)
+			{
+				fakeLag();
+			}
+			if (bDefuse == true)
+			{
+				checkDefuse();
+			}
+			drawChams(); //Needs to be outside so it can reset the color back
+			Sleep(2);
 		}
 	}
 	return 0;
