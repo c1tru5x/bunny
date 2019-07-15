@@ -2,7 +2,11 @@
 #include <iostream>
 #include <vector>
 #include <math.h>
+#include <thread>
+#include <chrono>
 #include "connector.h"
+#include "timercpp.h"
+
 CHackProcess fProcess;
 
 constexpr auto onGround = 257;
@@ -27,7 +31,6 @@ const DWORD dwVecVelocity = 0x114;
 const DWORD bIsDefusing = 0x3918;
 const DWORD bHasDefKit = 0xB350;
 
-
 bool bBhop = false;
 bool bflash = false;
 bool bRadar = false;
@@ -46,7 +49,6 @@ struct myPlayer_T
 	int iCrossID = 0;
 
 	std::vector<float> vel;
-
 	
 	void ReadInfo()
 	{
@@ -136,9 +138,12 @@ void drawChams()
 		DWORD entity = 0x0;
 		bool hasKit = 0;
 		int enemyTeam = 0; //actually EntityTeam
+		int health = 0;
 		//no need for alpha value because brightness does the work for us
 		byte rgbColor[3]= {33, 103, 255}; //cyan
 		byte rgbColorEnemy[3] = {255, 25, 155}; //pink
+		byte rgbColorEnemyLow[3] = {255,140,0}; //orange
+		byte rgbColorDefuser[3] = { 0, 0, 255 }; //pure blue
 		byte rgbColorEnemyDefuser[3] = { 255, 0, 0 }; //pure red
 		float brightness = 15.f; //65 is very bright
 		DWORD thisPtr = (int)(fProcess.__dwordEngine + dwModelAmb - 0x2c);
@@ -149,21 +154,44 @@ void drawChams()
 			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + entityList + (i * 0x10)), &entity, sizeof(DWORD), 0);
 			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwTeam), &enemyTeam, sizeof(int), 0);
 			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + bHasDefKit), &hasKit, sizeof(bool), 0);
+			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwHealth), &health, sizeof(bool), 0);
 			if (entity != NULL && enemyTeam != myPlayer.iTeam)
 			{
-				//Bomb Boi
-				if (hasKit)
+				//Defuse Boi red
+				if (hasKit && health > 40)
 				{
 					WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwCham), &rgbColorEnemyDefuser, sizeof(rgbColorEnemyDefuser), 0);
 				}
+				else if (hasKit && health <= 40)
+				{
+					WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwCham), &rgbColorEnemyDefuser, sizeof(rgbColorEnemyDefuser), 0);
+					Sleep(2);
+					WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwCham), &rgbColorEnemyLow, sizeof(rgbColorEnemyLow), 0);
+					Sleep(2);
+				}
+				//Normal Boi pink
 				else
 				{
-					WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwCham), &rgbColorEnemy, sizeof(rgbColorEnemy), 0);
+					if (health > 50)
+					{
+						WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwCham), &rgbColorEnemy, sizeof(rgbColorEnemy), 0);
+					}
+					else
+					{
+						WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwCham), &rgbColorEnemyLow, sizeof(rgbColorEnemyLow), 0);
+					}
 				}
 			}
 			else if (entity != NULL && enemyTeam == myPlayer.iTeam)
 			{
-				WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwCham), &rgbColor, sizeof(rgbColor), 0);
+				if (hasKit)
+				{
+					WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwCham), &rgbColorDefuser, sizeof(rgbColorDefuser), 0);
+				}
+				else
+				{
+					WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwCham), &rgbColor, sizeof(rgbColor), 0);
+				}
 			}
 		}
 		WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordEngine + dwModelAmb), &xored, sizeof(int), 0);
@@ -280,7 +308,7 @@ int main(void)
 	else
 	{
 		std::cout << "Bunny by c1tru5x" << std::endl;
-		std::cout << "Updated 14.JULY.2019" << std::endl;
+		std::cout << "Updated 15.JULY.2019" << std::endl;
 		std::cout << "F11 to close!" << std::endl;
 		std::cout << "[NUM1] BHOP use SPACE" << std::endl;
 		std::cout << "[NUM2] No Flash!" << std::endl;
