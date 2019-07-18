@@ -12,9 +12,9 @@ CHackProcess fProcess;
 constexpr auto onGround = 257;
 constexpr auto crouchedGround = 263;
 
-const DWORD dwPlayerBase = 0xCF2A3C;
-const DWORD dwJump = 0x51A81BC;
-const DWORD entityList = 0x4D04B04;
+const DWORD dwPlayerBase = 0xCF3A3C;
+const DWORD dwJump = 0x51A918C;
+const DWORD entityList = 0x4D05AD4;
 const DWORD m_fFlags = 0x104;
 const DWORD flashAlpha = 0xA3F0;
 const DWORD isSpotted = 0x93D;
@@ -22,11 +22,11 @@ const DWORD dwCham = 0x70;
 const DWORD dwTeam = 0xF4;
 const DWORD dwCrossID = 0xB3AC;
 const DWORD dwModelAmb = 0x58FD1C; //for brightness
-const DWORD dwLeft = 0x313622C; //for auto strafe
-const DWORD dwRight = 0x3136220; //for auto strafe
-const DWORD bSendPackets = 0xD286A; //for lag (in BYTE!)
+const DWORD dwLeft = 0x313719C; //for auto strafe (strafe left)
+const DWORD dwRight = 0x3137190; //for auto strafe (strafe right)
+const DWORD bSendPackets = 0xD28FA; //for lag (in BYTE!)
 const DWORD dwHealth = 0x100; 
-const DWORD dwMouseEnable = 0xCF8588; //for not jumping when chatting in window
+const DWORD dwMouseEnable = 0xCF9588; //for not jumping when chatting in window
 const DWORD dwVecVelocity = 0x114;
 const DWORD bIsDefusing = 0x3918;
 const DWORD bHasDefKit = 0xB350;
@@ -67,8 +67,12 @@ void bunny()
 {
 	if (bBhop)
 	{
-		int doJump = 5;
-		int stopJump = 4;
+		WORD vkey = 0; //D
+		INPUT input;
+
+		int doThing = 5;
+		int stopThing = 4;
+
 		byte bMouseEnabled = 0; //88 = mouse off, 89 = mouse on
 
 		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwMouseEnable), &bMouseEnabled, sizeof(bMouseEnabled), 0);
@@ -77,11 +81,20 @@ void bunny()
 			(myPlayer.flag == crouchedGround && myPlayer.iHealth > 0 && bMouseEnabled == 89 && myPlayer.vel != std::vector<float>(0.0f))
 			)
 		{
-			WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwJump), &doJump, sizeof(doJump), 0);
+			WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwJump), &doThing, sizeof(doThing), 0);
+			////AutoStrafe Right
+			//WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwRight), &doThing, sizeof(doThing), 0);			
+			//WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwRight), &stopThing, sizeof(stopThing), 0);
+			////AutoStrafe Left
+			//WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwLeft), &doThing, sizeof(doThing), 0);
+			//WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwLeft), &stopThing, sizeof(stopThing), 0);
 		}
 		else
 		{
-			WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwJump), &stopJump, sizeof(stopJump), 0);
+			//Stop all
+			WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwJump), &stopThing, sizeof(stopThing), 0);
+			/*WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwRight), &stopThing, sizeof(stopThing), 0);
+			WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwLeft), &stopThing, sizeof(stopThing), 0);*/
 		}
 	}
 	else
