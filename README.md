@@ -8,3 +8,4 @@ Supoporting:
 • CHAMS
 • TRIGGERBOT
 • Fakelag
+• Enemy DefuseSound
