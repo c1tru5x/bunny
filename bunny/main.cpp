@@ -24,7 +24,6 @@ const DWORD dwCrossID = 0xB3AC;
 const DWORD dwModelAmb = 0x591D1C; //for brightnessw
 //const DWORD bSendPackets = 0xD28FA; //for lag (in BYTE!)
 const DWORD dwHealth = 0x100; 
-const DWORD dwMouseEnable = 0xCF9568; //for not jumping when chatting in window
 const DWORD dwVecVelocity = 0x114;
 const DWORD bIsDefusing = 0x3918;
 const DWORD bHasDefKit = 0xB350;
@@ -65,22 +64,15 @@ void bunny()
 {
 	if (bBhop)
 	{
-		WORD vkey = 0; //D
-		INPUT input;
 
 		int doThing = 5;
 		int stopThing = 4;
-
-		byte bMouseEnabled = 0; //88 = mouse off, 89 = mouse on
-
-		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwMouseEnable), &bMouseEnabled, sizeof(bMouseEnabled), 0);
-		//only when alive and moving
-		if ((myPlayer.flag == onGround && myPlayer.iHealth > 0 && bMouseEnabled == 89 && myPlayer.vel != std::vector<float>(0.0f)) ||
-			(myPlayer.flag == crouchedGround && myPlayer.iHealth > 0 && bMouseEnabled == 89 && myPlayer.vel != std::vector<float>(0.0f))
-			)
+		
+		if (myPlayer.flag == onGround && myPlayer.iHealth > 0 ||myPlayer.flag == crouchedGround && myPlayer.iHealth > 0)
 		{
 			WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwJump), &doThing, sizeof(doThing), 0);
 		}
+		
 		else
 		{
 			//Stop all
