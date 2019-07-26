@@ -12,21 +12,19 @@ CHackProcess fProcess;
 constexpr auto onGround = 257;
 constexpr auto crouchedGround = 263;
 
-const DWORD dwPlayerBase = 0xCF3A3C;
-const DWORD dwJump = 0x51A91CC;
-const DWORD entityList = 0x4D05B14;
+const DWORD dwPlayerBase = 0xCF3A4C;
+const DWORD dwJump = 0x51A91AC;
+const DWORD entityList = 0x4D05AF4;
 const DWORD m_fFlags = 0x104;
 const DWORD flashAlpha = 0xA3F0;
 const DWORD isSpotted = 0x93D;
 const DWORD dwCham = 0x70;
 const DWORD dwTeam = 0xF4;
 const DWORD dwCrossID = 0xB3AC;
-const DWORD dwModelAmb = 0x58FD1C; //for brightness
-const DWORD dwLeft = 0x31371DC; //for auto strafe (strafe left)
-const DWORD dwRight = 0x31371D0; //for auto strafe (strafe right)
-const DWORD bSendPackets = 0xD28FA; //for lag (in BYTE!)
+const DWORD dwModelAmb = 0x591D1C; //for brightnessw
+//const DWORD bSendPackets = 0xD28FA; //for lag (in BYTE!)
 const DWORD dwHealth = 0x100; 
-const DWORD dwMouseEnable = 0xCF9588; //for not jumping when chatting in window
+const DWORD dwMouseEnable = 0xCF9568; //for not jumping when chatting in window
 const DWORD dwVecVelocity = 0x114;
 const DWORD bIsDefusing = 0x3918;
 const DWORD bHasDefKit = 0xB350;
@@ -36,7 +34,7 @@ bool bflash = false;
 bool bRadar = false;
 bool bChams = false;
 bool bTrigger = false;
-bool bFakeL = false;
+//bool bFakeL = false;
 bool bDefuse = false;
 
 struct myPlayer_T
@@ -82,19 +80,11 @@ void bunny()
 			)
 		{
 			WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwJump), &doThing, sizeof(doThing), 0);
-			////AutoStrafe Right
-			//WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwRight), &doThing, sizeof(doThing), 0);			
-			//WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwRight), &stopThing, sizeof(stopThing), 0);
-			////AutoStrafe Left
-			//WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwLeft), &doThing, sizeof(doThing), 0);
-			//WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwLeft), &stopThing, sizeof(stopThing), 0);
 		}
 		else
 		{
 			//Stop all
 			WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwJump), &stopThing, sizeof(stopThing), 0);
-			/*WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwRight), &stopThing, sizeof(stopThing), 0);
-			WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwLeft), &stopThing, sizeof(stopThing), 0);*/
 		}
 	}
 	else
@@ -266,6 +256,7 @@ void Trigger()
 	}
 }
 
+/*
 void fakeLag()
 {
 	byte lagON = 0;
@@ -282,7 +273,7 @@ void fakeLag()
 		WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordEngine + bSendPackets), &lagFalse, sizeof(byte), 0);
 	}
 }
-
+*/
 void checkDefuse()
 {
 	DWORD entity = 0x0;
@@ -320,17 +311,16 @@ int main(void)
 	}
 	else
 	{
-		std::cout << "Bunny by c1tru5x" << std::endl;
-		std::cout << "Updated 15.JULY.2019" << std::endl;
+		std::cout << "B U N N Y made by c1tru5x" << std::endl;
+		std::cout << "-------------------------" << std::endl;
 		std::cout << "F11 to close!" << std::endl;
 		std::cout << "[NUM1] BHOP use SPACE" << std::endl;
 		std::cout << "[NUM2] No Flash!" << std::endl;
 		std::cout << "[NUM3] Radar" << std::endl;
 		std::cout << "[NUM4] Chams" << std::endl;
 		std::cout << "[NUM5] Trigger use ALT" << std::endl;
-		std::cout << "[NUM6] FakeLag" << std::endl;
-		std::cout << "[NUM7] Check for Defuse" << std::endl;
-
+		std::cout << "[NUM6] Check for Defuse" << std::endl;
+		
 		while (!GetAsyncKeyState(VK_F11))
 		{
 			myPlayer.ReadInfo();
@@ -396,18 +386,6 @@ int main(void)
 			}
 			if (GetAsyncKeyState(VK_NUMPAD6))
 			{
-				bFakeL = !bFakeL;
-				if (bFakeL == false)
-				{
-					Beep(250, 200);
-				}
-				else
-				{
-					Beep(400, 200);
-				}
-			}
-			if (GetAsyncKeyState(VK_NUMPAD7))
-			{
 				bDefuse = !bDefuse;
 				if (bDefuse == false)
 				{
@@ -440,10 +418,6 @@ int main(void)
 			if (bRadar == true)
 			{
 				radar();
-			}
-			if (bFakeL == true)
-			{
-				fakeLag();
 			}
 			if (bDefuse == true)
 			{
