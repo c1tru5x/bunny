@@ -7,5 +7,4 @@ Supoporting:
 • RADARHACK
 • CHAMS
 • TRIGGERBOT
-• Fakelag
 • Enemy DefuseSound
