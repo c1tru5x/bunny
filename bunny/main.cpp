@@ -22,9 +22,7 @@ const DWORD dwCham = 0x70;
 const DWORD dwTeam = 0xF4;
 const DWORD dwCrossID = 0xB3AC;
 const DWORD dwModelAmb = 0x591D1C; //for brightnessw
-//const DWORD bSendPackets = 0xD28FA; //for lag (in BYTE!)
 const DWORD dwHealth = 0x100; 
-const DWORD dwVecVelocity = 0x114;
 const DWORD bIsDefusing = 0x3918;
 const DWORD bHasDefKit = 0xB350;
 
@@ -33,7 +31,6 @@ bool bflash = false;
 bool bRadar = false;
 bool bChams = false;
 bool bTrigger = false;
-//bool bFakeL = false;
 bool bDefuse = false;
 
 struct myPlayer_T
@@ -44,8 +41,6 @@ struct myPlayer_T
 	int iTeam = 0;
 	int iHealth = 0;
 	int iCrossID = 0;
-
-	std::vector<float> vel;
 	
 	void ReadInfo()
 	{
@@ -56,7 +51,6 @@ struct myPlayer_T
 		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + dwTeam), &iTeam, sizeof(int), 0);
 		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + dwCrossID), &iCrossID, sizeof(int), 0);
 		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + dwHealth), &iHealth, sizeof(int), 0);
-		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + dwVecVelocity), &vel, sizeof(vel), 0);
 	}
 }myPlayer;
 
@@ -68,12 +62,12 @@ void bunny()
 		int doThing = 5;
 		int stopThing = 4;
 		
-		if (myPlayer.flag == onGround && myPlayer.iHealth > 0 ||myPlayer.flag == crouchedGround && myPlayer.iHealth > 0)
+		if (myPlayer.flag == onGround && myPlayer.iHealth > 0 || myPlayer.flag == crouchedGround && myPlayer.iHealth > 0)
 		{
 			WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwJump), &doThing, sizeof(doThing), 0);
 		}
 		
-		else
+		else if (myPlayer.flag == onGround && myPlayer.iHealth <= 0 || myPlayer.flag == crouchedGround && myPlayer.iHealth <= 0)
 		{
 			//Stop all
 			WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwJump), &stopThing, sizeof(stopThing), 0);
@@ -167,7 +161,7 @@ void drawChams()
 				//Normal Boi pink
 				else
 				{
-					if (health > 50)
+					if (health > 40)
 					{
 						WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwCham), &rgbColorEnemy, sizeof(rgbColorEnemy), 0);
 					}
@@ -248,24 +242,6 @@ void Trigger()
 	}
 }
 
-/*
-void fakeLag()
-{
-	byte lagON = 0;
-	byte lagFalse = 1;
-
-	if(bFakeL)
-	{
-	WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordEngine + bSendPackets), &lagON, sizeof(byte), 0);
-	Sleep(125); //1000ms/64 tick = 15.6 ..  15.6 * 8 Bit = 125**
-	WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordEngine + bSendPackets), &lagFalse, sizeof(byte), 0);
-	}
-	else
-	{
-		WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordEngine + bSendPackets), &lagFalse, sizeof(byte), 0);
-	}
-}
-*/
 void checkDefuse()
 {
 	DWORD entity = 0x0;
@@ -416,7 +392,7 @@ int main(void)
 				checkDefuse();
 			}
 			drawChams(); //Needs to be outside so it can reset the color back
-			Sleep(2);
+			Sleep(1);
 		}
 	}
 	return 0;
