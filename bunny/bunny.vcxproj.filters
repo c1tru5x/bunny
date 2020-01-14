@@ -23,5 +23,8 @@
     <ClInclude Include="connector.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
+    <ClInclude Include="csgo.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

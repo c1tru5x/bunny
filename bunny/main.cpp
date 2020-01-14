@@ -6,27 +6,15 @@
 #include <chrono>
 #include "connector.h"
 #include "timercpp.h"
+#include "csgo.hpp"
+
+using namespace hazedumper::netvars;
+using namespace hazedumper::signatures;
 
 CHackProcess fProcess;
 
-constexpr auto onGround = 257;
-constexpr auto crouchedGround = 263;
+DWORD dwCham = 0x70;
 
-const DWORD dwPlayerBase = 0xCF3A4C;
-const DWORD dwJump = 0x51A91AC;
-const DWORD entityList = 0x4D05AF4;
-const DWORD m_fFlags = 0x104;
-const DWORD flashAlpha = 0xA3F0;
-const DWORD isSpotted = 0x93D;
-const DWORD dwCham = 0x70;
-const DWORD dwTeam = 0xF4;
-const DWORD dwCrossID = 0xB3AC;
-const DWORD dwModelAmb = 0x591D1C; //for brightnessw
-const DWORD dwHealth = 0x100; 
-const DWORD bIsDefusing = 0x3918;
-const DWORD bHasDefKit = 0xB350;
-
-bool bBhop = false;
 bool bflash = false;
 bool bRadar = false;
 bool bChams = false;
@@ -36,7 +24,6 @@ bool bDefuse = false;
 struct myPlayer_T
 {
 	DWORD dwLocalP = 0x0;
-	int flag = 0;
 	int flash = 0;
 	int iTeam = 0;
 	int iHealth = 0;
@@ -45,40 +32,13 @@ struct myPlayer_T
 	void ReadInfo()
 	{
 		//Read this all the time..
-		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwPlayerBase), &dwLocalP, sizeof(DWORD), 0);
-		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + m_fFlags), &flag, sizeof(int), 0);
-		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + flashAlpha), &flash, sizeof(int), 0);
-		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + dwTeam), &iTeam, sizeof(int), 0);
-		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + dwCrossID), &iCrossID, sizeof(int), 0);
-		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + dwHealth), &iHealth, sizeof(int), 0);
+		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwLocalPlayer), &dwLocalP, sizeof(DWORD), 0);
+		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + m_flFlashMaxAlpha), &flash, sizeof(int), 0);
+		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + m_iTeamNum), &iTeam, sizeof(int), 0);
+		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + m_iCrosshairId), &iCrossID, sizeof(int), 0);
+		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + m_iHealth), &iHealth, sizeof(int), 0);
 	}
 }myPlayer;
-
-void bunny()
-{
-	if (bBhop)
-	{
-
-		int doThing = 5;
-		int stopThing = 4;
-		
-		if (myPlayer.flag == onGround && myPlayer.iHealth > 0 || myPlayer.flag == crouchedGround && myPlayer.iHealth > 0)
-		{
-			WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwJump), &doThing, sizeof(doThing), 0);
-		}
-		
-		else if (myPlayer.flag == onGround && myPlayer.iHealth <= 0 || myPlayer.flag == crouchedGround && myPlayer.iHealth <= 0)
-		{
-			//Stop all
-			WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwJump), &stopThing, sizeof(stopThing), 0);
-		}
-	}
-	else
-	{
-		return;
-	}
-	
-}
 
 void flash()
 {
@@ -88,7 +48,7 @@ void flash()
 	{
 		if (myPlayer.flash > .5f)
 		{
-			WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(myPlayer.dwLocalP + flashAlpha), &newAlphaFlash, sizeof(newAlphaFlash), 0);
+			WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(myPlayer.dwLocalP + m_flFlashMaxAlpha), &newAlphaFlash, sizeof(newAlphaFlash), 0);
 		}
 	}
 	else
@@ -106,11 +66,11 @@ void radar()
 		for (int i = 0; i < 64; i++)
 		{
 			//Radar
-			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + entityList + (i * 0x10)), &entity, sizeof(DWORD), 0);
+			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwEntityList + (i * 0x10)), &entity, sizeof(DWORD), 0);
 			//Spot
 			if (entity != NULL)
 			{
-				WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + isSpotted), &bSpot, sizeof(bool), 0);
+				WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + m_bSpotted), &bSpot, sizeof(bool), 0);
 			}
 		}
 	}
@@ -135,15 +95,15 @@ void drawChams()
 		byte rgbColorDefuser[3] = { 0, 0, 255 }; //pure blue
 		byte rgbColorEnemyDefuser[3] = { 255, 0, 0 }; //pure red
 		float brightness = 15.f; //65 is very bright
-		DWORD thisPtr = (int)(fProcess.__dwordEngine + dwModelAmb - 0x2c);
+		DWORD thisPtr = (int)(fProcess.__dwordEngine + model_ambient_min - 0x2c);
 		DWORD xored = *(DWORD*)&brightness ^ thisPtr;
 		
 		for (int i = 0; i < 64; i++)
 		{
-			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + entityList + (i * 0x10)), &entity, sizeof(DWORD), 0);
-			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwTeam), &enemyTeam, sizeof(int), 0);
-			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + bHasDefKit), &hasKit, sizeof(bool), 0);
-			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwHealth), &health, sizeof(bool), 0);
+			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwEntityList + (i * 0x10)), &entity, sizeof(DWORD), 0);
+			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + m_iTeamNum), &enemyTeam, sizeof(int), 0);
+			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + m_bHasDefuser), &hasKit, sizeof(bool), 0);
+			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + m_iHealth), &health, sizeof(bool), 0);
 			if (entity != NULL && enemyTeam != myPlayer.iTeam)
 			{
 				//Defuse Boi red
@@ -183,7 +143,7 @@ void drawChams()
 				}
 			}
 		}
-		WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordEngine + dwModelAmb), &xored, sizeof(int), 0);
+		WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordEngine + model_ambient_min), &xored, sizeof(int), 0);
 	}
 	else
 	{
@@ -193,12 +153,12 @@ void drawChams()
 		byte rgbColor[3] = {255, 255, 255};
 		byte rgbColorEnemy[3] = {255, 255, 255};
 		float resetBrightness = 0.f;
-		DWORD thisPtr = (int)(fProcess.__dwordEngine + dwModelAmb - 0x2c);
+		DWORD thisPtr = (int)(fProcess.__dwordEngine + model_ambient_min - 0x2c);
 		DWORD resetXored = *(DWORD*)&resetBrightness ^ thisPtr;
 		for (int i = 0; i < 64; i++)
 		{
-			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + entityList + (i * 0x10)), &entity, sizeof(DWORD), 0);
-			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwTeam), &enemyTeam, sizeof(int), 0);
+			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwEntityList + (i * 0x10)), &entity, sizeof(DWORD), 0);
+			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + m_iTeamNum), &enemyTeam, sizeof(int), 0);
 			if (entity != NULL && enemyTeam != myPlayer.iTeam)
 			{
 				WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwCham), &rgbColorEnemy, sizeof(rgbColorEnemy), 0);
@@ -208,7 +168,7 @@ void drawChams()
 				WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwCham), &rgbColor, sizeof(rgbColor), 0);
 			}
 		}
-		WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordEngine + dwModelAmb), &resetXored, sizeof(int), 0);
+		WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordEngine + model_ambient_min), &resetXored, sizeof(int), 0);
 	}	
 }
 
@@ -222,11 +182,11 @@ void Trigger()
 		int AimedAt = myPlayer.iCrossID;
 		if (AimedAt > 0 && AimedAt < 64) 
 		{
-			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + entityList + (AimedAt - 1) * (0x10)), &aimedEntity, sizeof(DWORD), 0);
+			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwEntityList + (AimedAt - 1) * (0x10)), &aimedEntity, sizeof(DWORD), 0);
 		}
 		for (int i = 0; i < 64; i++)
 		{
-			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(aimedEntity + dwTeam), &enemyTeam, sizeof(int), 0);
+			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(aimedEntity + m_iTeamNum), &enemyTeam, sizeof(int), 0);
 		}
 		if (myPlayer.iCrossID > 0 && enemyTeam != myPlayer.iTeam)
 		{
@@ -251,10 +211,10 @@ void checkDefuse()
 
 	for (int i = 0; i < 64; i++)
 	{
-		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + entityList + (i * 0x10)), &entity, sizeof(DWORD), 0);
-		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwTeam), &enemyTeam, sizeof(int), 0);
-		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + bIsDefusing), &defusing, sizeof(bool), 0);
-		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + bHasDefKit), &hasKit, sizeof(bool), 0);
+		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwEntityList + (i * 0x10)), &entity, sizeof(DWORD), 0);
+		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + m_iTeamNum), &enemyTeam, sizeof(int), 0);
+		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + m_bIsDefusing), &defusing, sizeof(bool), 0);
+		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + m_bHasDefuser), &hasKit, sizeof(bool), 0);
 		if (entity != NULL && enemyTeam != myPlayer.iTeam)
 		{
 			if (defusing && hasKit)
@@ -271,40 +231,22 @@ void checkDefuse()
 
 int main(void)
 {
+    SetConsoleTitle("Bunny but no BHOP!");
 	fProcess.RunProcess();    //always forgetting this line...
-	if (fProcess.__HWNDCSgo == NULL) //if window not found
-	{
-		std::cout << "Process 'csgo.exe' not found!" << std::endl;
-		std::cout << "Last Error: " << GetLastError() << std::endl;
-	}
-	else
-	{
-		std::cout << "B U N N Y made by c1tru5x" << std::endl;
+		std::cout << "Made by c1tru5x [14.Jan.2020]" << std::endl;
 		std::cout << "-------------------------" << std::endl;
 		std::cout << "F11 to close!" << std::endl;
-		std::cout << "[NUM1] BHOP use SPACE" << std::endl;
-		std::cout << "[NUM2] No Flash!" << std::endl;
-		std::cout << "[NUM3] Radar" << std::endl;
-		std::cout << "[NUM4] Chams" << std::endl;
-		std::cout << "[NUM5] Trigger use ALT" << std::endl;
-		std::cout << "[NUM6] Check for Defuse" << std::endl;
+		std::cout << "[NUM1] No Flash" << std::endl;
+		std::cout << "[NUM2] Radar" << std::endl;
+		std::cout << "[NUM3] Chams" << std::endl;
+		std::cout << "[NUM4] Trigger use [ALT]" << std::endl;
+		std::cout << "[NUM5] Check for Defuse" << std::endl;
 		
 		while (!GetAsyncKeyState(VK_F11))
 		{
+            //Read all the time.
 			myPlayer.ReadInfo();
 			if (GetAsyncKeyState(VK_NUMPAD1))
-			{
-				bBhop = !bBhop;
-				if (bBhop == false)
-				{
-					Beep(250, 200);
-				}
-				else
-				{
-					Beep(400, 200);
-				}
-			}
-			if (GetAsyncKeyState(VK_NUMPAD2))
 			{
 				bflash = !bflash;
 				if (bflash == false)
@@ -316,7 +258,7 @@ int main(void)
 					Beep(400, 200);
 				}
 			}
-			if (GetAsyncKeyState(VK_NUMPAD3))
+			if (GetAsyncKeyState(VK_NUMPAD2))
 			{
 				bRadar = !bRadar;
 				if (bRadar == false)
@@ -328,7 +270,7 @@ int main(void)
 					Beep(400, 200);
 				}
 			}
-			if (GetAsyncKeyState(VK_NUMPAD4))
+			if (GetAsyncKeyState(VK_NUMPAD3))
 			{
 				bChams = !bChams;
 				if (bChams == false)
@@ -340,7 +282,7 @@ int main(void)
 					Beep(400, 200);
 				}
 			}
-			if (GetAsyncKeyState(VK_NUMPAD5))
+			if (GetAsyncKeyState(VK_NUMPAD4))
 			{
 				bTrigger = !bTrigger;
 				if (bTrigger == false)
@@ -352,7 +294,7 @@ int main(void)
 					Beep(400, 200);
 				}
 			}
-			if (GetAsyncKeyState(VK_NUMPAD6))
+			if (GetAsyncKeyState(VK_NUMPAD5))
 			{
 				bDefuse = !bDefuse;
 				if (bDefuse == false)
@@ -372,13 +314,6 @@ int main(void)
 					Trigger();
 				}
 			}
-			if (bBhop == true)
-			{
-				if (GetAsyncKeyState(VK_SPACE))
-				{
-					bunny();
-				}
-			}
 			if (bflash == true)
 			{
 				flash();
@@ -393,7 +328,6 @@ int main(void)
 			}
 			drawChams(); //Needs to be outside so it can reset the color back
 			Sleep(1);
-		}
 	}
 	return 0;
 }
