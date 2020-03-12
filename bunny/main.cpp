@@ -13,13 +13,12 @@ using namespace hazedumper::signatures;
 
 CHackProcess fProcess;
 
-DWORD dwCham = 0x70;
-
 bool bflash = false;
 bool bRadar = false;
 bool bChams = false;
 bool bTrigger = false;
 bool bDefuse = false;
+bool bWall = false;
 
 struct myPlayer_T
 {
@@ -82,11 +81,13 @@ void radar()
 
 void drawChams()
 {
+    DWORD dwCham = 0x70;
+
 	if (bChams)
 	{
 		DWORD entity = 0x0;
 		bool hasKit = 0;
-		int enemyTeam = 0; //actually EntityTeam
+		int entityTeam = 0; //actually EntityTeam
 		int health = 0;
 		//no need for alpha value because brightness does the work for us
 		byte rgbColor[3]= {33, 103, 255}; //cyan
@@ -101,10 +102,10 @@ void drawChams()
 		for (int i = 0; i < 64; i++)
 		{
 			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwEntityList + (i * 0x10)), &entity, sizeof(DWORD), 0);
-			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + m_iTeamNum), &enemyTeam, sizeof(int), 0);
+			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + m_iTeamNum), &entityTeam, sizeof(int), 0);
 			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + m_bHasDefuser), &hasKit, sizeof(bool), 0);
 			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + m_iHealth), &health, sizeof(bool), 0);
-			if (entity != NULL && enemyTeam != myPlayer.iTeam)
+			if (entity != NULL && entityTeam != myPlayer.iTeam)
 			{
 				//Defuse Boi red
 				if (hasKit && health > 40)
@@ -131,7 +132,7 @@ void drawChams()
 					}
 				}
 			}
-			else if (entity != NULL && enemyTeam == myPlayer.iTeam)
+			else if (entity != NULL && entityTeam == myPlayer.iTeam)
 			{
 				if (hasKit)
 				{
@@ -149,7 +150,7 @@ void drawChams()
 	{
 		//reset
 		DWORD entity = 0x0;
-		int enemyTeam = 0;
+		int entityTeam = 0;
 		byte rgbColor[3] = {255, 255, 255};
 		byte rgbColorEnemy[3] = {255, 255, 255};
 		float resetBrightness = 0.f;
@@ -158,12 +159,12 @@ void drawChams()
 		for (int i = 0; i < 64; i++)
 		{
 			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwEntityList + (i * 0x10)), &entity, sizeof(DWORD), 0);
-			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + m_iTeamNum), &enemyTeam, sizeof(int), 0);
-			if (entity != NULL && enemyTeam != myPlayer.iTeam)
+			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + m_iTeamNum), &entityTeam, sizeof(int), 0);
+			if (entity != NULL && entityTeam != myPlayer.iTeam)
 			{
 				WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwCham), &rgbColorEnemy, sizeof(rgbColorEnemy), 0);
 			}
-			else if (entity != NULL && enemyTeam == myPlayer.iTeam)
+			else if (entity != NULL && entityTeam == myPlayer.iTeam)
 			{
 				WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwCham), &rgbColor, sizeof(rgbColor), 0);
 			}
@@ -176,7 +177,7 @@ void Trigger()
 {
 	DWORD aimedEntity = 0x0;
 	DWORD entity = 0x0;
-	int enemyTeam = 0;
+	int entityTeam = 0;
 	if (bTrigger)
 	{
 		int AimedAt = myPlayer.iCrossID;
@@ -186,9 +187,9 @@ void Trigger()
 		}
 		for (int i = 0; i < 64; i++)
 		{
-			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(aimedEntity + m_iTeamNum), &enemyTeam, sizeof(int), 0);
+			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(aimedEntity + m_iTeamNum), &entityTeam, sizeof(int), 0);
 		}
-		if (myPlayer.iCrossID > 0 && enemyTeam != myPlayer.iTeam)
+		if (myPlayer.iCrossID > 0 && entityTeam != myPlayer.iTeam)
 		{
 			Sleep(14); 
 			mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
@@ -205,17 +206,17 @@ void Trigger()
 void checkDefuse()
 {
 	DWORD entity = 0x0;
-	int enemyTeam = 0; //actually EntityTeam
+	int entityTeam = 0; //actually EntityTeam
 	bool defusing = 0;
 	bool hasKit = 0;
 
 	for (int i = 0; i < 64; i++)
 	{
 		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwEntityList + (i * 0x10)), &entity, sizeof(DWORD), 0);
-		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + m_iTeamNum), &enemyTeam, sizeof(int), 0);
+		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + m_iTeamNum), &entityTeam, sizeof(int), 0);
 		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + m_bIsDefusing), &defusing, sizeof(bool), 0);
 		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + m_bHasDefuser), &hasKit, sizeof(bool), 0);
-		if (entity != NULL && enemyTeam != myPlayer.iTeam)
+		if (entity != NULL && entityTeam != myPlayer.iTeam)
 		{
 			if (defusing && hasKit)
 			{
@@ -229,11 +230,27 @@ void checkDefuse()
 	}
 }
 
+void wall()
+{
+    DWORD entity = 0x0;
+    int entityTeam = 0; //actually EntityTeam
+    for (int i = 0; i < 64; i++)
+    {
+        ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwEntityList + (i * 0x10)), &entity, sizeof(DWORD), 0);
+        ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + m_iTeamNum), &entityTeam, sizeof(int), 0);
+
+        if (entity != NULL && entityTeam != myPlayer.iTeam) //Find Enemy
+        {
+            //Show outlines
+        }
+    }
+}
+
 int main(void)
 {
     SetConsoleTitle("Bunny but no BHOP!");
 	fProcess.RunProcess();    //always forgetting this line...
-		std::cout << "Made by c1tru5x [14.Jan.2020]" << std::endl;
+		std::cout << "Made by c1tru5x [12.Mar.2020]" << std::endl;
 		std::cout << "-------------------------" << std::endl;
 		std::cout << "F11 to close!" << std::endl;
 		std::cout << "[NUM1] No Flash" << std::endl;
@@ -241,6 +258,7 @@ int main(void)
 		std::cout << "[NUM3] Chams" << std::endl;
 		std::cout << "[NUM4] Trigger use [ALT]" << std::endl;
 		std::cout << "[NUM5] Check for Defuse" << std::endl;
+        std::cout << "[NUM6] Walls" << std::endl;
 		
 		while (!GetAsyncKeyState(VK_F11))
 		{
@@ -306,10 +324,22 @@ int main(void)
 					Beep(400, 200);
 				}
 			}
+            if (GetAsyncKeyState(VK_NUMPAD6))
+            {
+                bWall = !bWall;
+                if (bWall == false)
+                {
+                    Beep(250, 200);
+                }
+                else
+                {
+                    Beep(400, 200);
+                }
+            }
 			//Functioncall
 			if (bTrigger == true)
 			{
-				if (GetAsyncKeyState(VK_LMENU))
+				if (GetAsyncKeyState(VK_LMENU)) //Alt Key
 				{
 					Trigger();
 				}
@@ -326,6 +356,10 @@ int main(void)
 			{
 				checkDefuse();
 			}
+            if (bWall == true)
+            {
+                wall();
+            }
 			drawChams(); //Needs to be outside so it can reset the color back
 			Sleep(1);
 	}
