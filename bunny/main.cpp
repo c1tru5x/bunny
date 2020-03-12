@@ -232,17 +232,43 @@ void checkDefuse()
 
 void wall()
 {
+    DWORD glowObj = 0x0;
     DWORD entity = 0x0;
+
+    int glowIndex = 0;
     int entityTeam = 0; //actually EntityTeam
+
+    bool bOn = true;
+    bool bOff = false;
+    float two = 2.f;
+    float alpha = .8f;
+
+    ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwGlowObjectManager), &glowObj, sizeof(DWORD), 0);
+
     for (int i = 0; i < 64; i++)
     {
         ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwEntityList + (i * 0x10)), &entity, sizeof(DWORD), 0);
         ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + m_iTeamNum), &entityTeam, sizeof(int), 0);
+        ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + m_iGlowIndex), &glowIndex, sizeof(int), 0);
 
         if (entity != NULL && entityTeam != myPlayer.iTeam) //Find Enemy
         {
             //Show outlines
+            WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) +0x4), &two ,sizeof(float), 0); //red
+            WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x8), 0, sizeof(float), 0); //green
+            WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0xC), 0, sizeof(float), 0); //blue
+            WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x10), &alpha, sizeof(float), 0); //alpha
         }
+        else if (entity != NULL && entityTeam == myPlayer.iTeam)
+        {
+            //Show outlines
+            WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x4), 0, sizeof(float), 0); //red
+            WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x8), 0, sizeof(float), 0); //green
+            WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0xC), &two, sizeof(float), 0); //blue
+            WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x10), &alpha, sizeof(float), 0); //alpha
+        }
+        WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x24), &bOn, sizeof(bool), 0);
+        WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x25), &bOff, sizeof(bool), 0);
     }
 }
 
