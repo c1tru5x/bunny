@@ -238,10 +238,12 @@ void wall()
     int glowIndex = 0;
     int entityTeam = 0; //actually EntityTeam
 
-    bool bOn = true;
-    bool bOff = false;
+    bool bOccluded = true;
+    bool bUnoccluded = false;
+
     float two = 2.f;
     float alpha = .8f;
+    int glowStyle = 1;
 
     ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwGlowObjectManager), &glowObj, sizeof(DWORD), 0);
 
@@ -254,7 +256,7 @@ void wall()
         if (entity != NULL && entityTeam != myPlayer.iTeam) //Find Enemy
         {
             //Show outlines
-            WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) +0x4), &two ,sizeof(float), 0); //red
+            WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x4), &two ,sizeof(float), 0); //red
             WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x8), 0, sizeof(float), 0); //green
             WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0xC), 0, sizeof(float), 0); //blue
             WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x10), &alpha, sizeof(float), 0); //alpha
@@ -267,8 +269,9 @@ void wall()
             WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0xC), &two, sizeof(float), 0); //blue
             WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x10), &alpha, sizeof(float), 0); //alpha
         }
-        WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x24), &bOn, sizeof(bool), 0);
-        WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x25), &bOff, sizeof(bool), 0);
+        WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x24), &bOccluded, sizeof(bool), 0);
+        WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x25), &bUnoccluded, sizeof(bool), 0);
+        //WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x48), &glowStyle, sizeof(int), 0); //need to find style offset
     }
 }
 
