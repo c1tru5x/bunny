@@ -50,10 +50,6 @@ void flash()
 			WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(myPlayer.dwLocalP + m_flFlashMaxAlpha), &newAlphaFlash, sizeof(newAlphaFlash), 0);
 		}
 	}
-	else
-	{
-		return;
-	}
 }
 
 void radar()
@@ -72,10 +68,6 @@ void radar()
 				WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + m_bSpotted), &bSpot, sizeof(bool), 0);
 			}
 		}
-	}
-	else
-	{
-		return;
 	}
 }
 
@@ -176,7 +168,6 @@ void drawChams()
 void Trigger()
 {
 	DWORD aimedEntity = 0x0;
-	DWORD entity = 0x0;
 	int entityTeam = 0;
 	if (bTrigger)
 	{
@@ -196,10 +187,6 @@ void Trigger()
 			Sleep(10); 
 			mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
 		}
-	}
-	else
-	{
-		return;
 	}
 }
 
@@ -241,13 +228,13 @@ void wall()
     bool bOccluded = true;
     bool bUnoccluded = false;
 
-    float two = 2.f;
-    float alpha = .8f;
-    int glowStyle = 1;
+    float full = 1.f; //255
+    float alpha = .7f;
+    //int glowStyle = 2;
 
     ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwGlowObjectManager), &glowObj, sizeof(DWORD), 0);
 
-    for (int i = 0; i < 64; i++)
+    for (int i = 0; i < 10; i++)
     {
         ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwEntityList + (i * 0x10)), &entity, sizeof(DWORD), 0);
         ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + m_iTeamNum), &entityTeam, sizeof(int), 0);
@@ -256,11 +243,12 @@ void wall()
         if (entity != NULL && entityTeam != myPlayer.iTeam) //Find Enemy
         {
             //Show outlines
-            WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x4), &two ,sizeof(float), 0); //red
-            WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x8), 0, sizeof(float), 0); //green
-            WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0xC), 0, sizeof(float), 0); //blue
+            WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x4), &full ,sizeof(float), 0); //red
+            //WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x8), 0, sizeof(float), 0); //green
+            //WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0xC), 0, sizeof(float), 0); //blue
             WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x10), &alpha, sizeof(float), 0); //alpha
         }
+        /*
         else if (entity != NULL && entityTeam == myPlayer.iTeam)
         {
             //Show outlines
@@ -269,9 +257,11 @@ void wall()
             WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0xC), &two, sizeof(float), 0); //blue
             WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x10), &alpha, sizeof(float), 0); //alpha
         }
+        */
         WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x24), &bOccluded, sizeof(bool), 0);
         WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x25), &bUnoccluded, sizeof(bool), 0);
-        //WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x48), &glowStyle, sizeof(int), 0); //need to find style offset
+        //need to find style offset somewhere near 0x44, 0x48
+        //WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x48), &glowStyle, sizeof(int), 0); 
     }
 }
 
