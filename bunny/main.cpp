@@ -41,7 +41,7 @@ struct myPlayer_T
 
 void flash()
 {
-	float newAlphaFlash = .2f;
+	float newAlphaFlash = .2f; //old val .2f
 
 	if (bflash)
 	{
@@ -267,17 +267,16 @@ void wall()
 
 int main(void)
 {
-    SetConsoleTitle("Bunny but no BHOP!");
-	fProcess.RunProcess();    //always forgetting this line...
-		std::cout << "Made by c1tru5x [12.Mar.2020]" << std::endl;
-		std::cout << "-------------------------" << std::endl;
-		std::cout << "F11 to close!" << std::endl;
-		std::cout << "[NUM1] No Flash" << std::endl;
-		std::cout << "[NUM2] Radar" << std::endl;
-		std::cout << "[NUM3] Chams" << std::endl;
-		std::cout << "[NUM4] Trigger use [ALT]" << std::endl;
-		std::cout << "[NUM5] Check for Defuse" << std::endl;
-        std::cout << "[NUM6] Walls" << std::endl;
+    fProcess.RunProcess();    //always forgetting this line...
+    std::cout << "Made by c1tru5x " << __DATE__ << std::endl;
+	std::cout << "-------------------------" << std::endl;
+	std::cout << "F11 to close!" << std::endl;
+	std::cout << "[NUM1] No Flash" << std::endl;
+	std::cout << "[NUM2] Radar" << std::endl;
+	std::cout << "[NUM3] Chams" << std::endl;
+	std::cout << "[NUM4] Trigger use [ALT]" << std::endl;
+	std::cout << "[NUM5] Check for Defuse" << std::endl;
+    std::cout << "[NUM6] Walls" << std::endl;
 		
 		while (!GetAsyncKeyState(VK_F11))
 		{
