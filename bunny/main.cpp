@@ -4,6 +4,10 @@
 #include "OffsetParser.h"
 #include "connector.h"
 #include <fstream>
+#include<string>
+#include <filesystem>
+namespace fs = std::experimental::filesystem;
+#pragma comment(lib, "urlmon.lib")
 
 using namespace  OffsettParser;
 
@@ -46,6 +50,7 @@ struct myPlayer_T
 	}
 } myPlayer;
 
+void updateJson();
 
 Offsets parseJson(const std::string& filePath)
 {
@@ -53,8 +58,8 @@ Offsets parseJson(const std::string& filePath)
 	std::ifstream i(filePath);
 	json j;
 	i >> j;
-	OffsettParser::Offsets parsedData = nlohmann::json::parse(j.dump());
 
+    OffsettParser::Offsets parsedData = nlohmann::json::parse(j.dump());
 	return parsedData;
 }
 
@@ -252,10 +257,12 @@ void playSound(const bool state)
 	}
 }
 
-int main(void)
+int main()
 {
 	// Get Offsets
-	offsets = parseJson("hazedumperRepo/csgo.json");
+	updateJson();
+
+	offsets = parseJson("./hazedumperRepo/csgo.json");
 
 	//always forgetting this line...
 	fProcess.RunProcess();
@@ -342,7 +349,7 @@ int main(void)
 
 			if (GetAsyncKeyState(VK_NUMPAD9))
 			{
-				offsets = parseJson("hazedumperRepo/csgo.json");
+				offsets = parseJson("./hazedumperRepo/csgo.json");
 			}
 
 			flash();
@@ -354,4 +361,11 @@ int main(void)
 		}
 	}
 	return 0;
+}
+
+void updateJson() {
+    std::string dwnld_URL = "https://raw.githubusercontent.com/frk1/hazedumper/master/csgo.json";
+    std::string savepath = "./hazedumperRepo/csgo.json";
+    fs::create_directories("./hazedumperRepo");
+    URLDownloadToFile(nullptr, dwnld_URL.c_str(), savepath.c_str(), 0, nullptr);
 }

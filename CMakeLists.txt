@@ -7,6 +7,5 @@ include_directories(bunny)
 
 add_executable(bunny
         bunny/connector.h
-        bunny/csgo.hpp
         bunny/main.cpp
-        bunny/timercpp.h)
+        bunny/OffsetParser.h)
