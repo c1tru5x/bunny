@@ -13,12 +13,8 @@ using namespace  OffsettParser;
 
 CHackProcess fProcess;
 
-constexpr auto onGround = 257;
-constexpr auto crouchedGround = 263;
-
 Offsets offsets;
 
-bool bBhop = false;
 bool bflash = false;
 bool bRadar = false;
 bool bChams = false;
@@ -34,9 +30,6 @@ struct myPlayer_T
 	int iTeam = 0;
 	int iHealth = 0;
 	int iCrossID = 0;
-
-	std::vector<float> vel;
-
 	
 	void ReadInfo()
 	{
@@ -47,7 +40,6 @@ struct myPlayer_T
 		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + offsets.netvars.m_i_team_num), &iTeam, sizeof(int), 0);
 		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + offsets.netvars.m_i_crosshair_id), &iCrossID, sizeof(int), 0);
 		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + offsets.netvars.m_i_health), &iHealth, sizeof(int), 0);
-		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + offsets.netvars.m_vec_velocity), &vel, sizeof(vel), 0);
 	}
 } myPlayer;
 
@@ -282,24 +274,11 @@ void wall()
         {
             //Show outlines
             WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x4), &full ,sizeof(float), 0); //red
-            //WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x8), 0, sizeof(float), 0); //green
-            //WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0xC), 0, sizeof(float), 0); //blue
             WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x10), &alpha, sizeof(float), 0); //alpha
         }
-        /*
-        else if (entity != NULL && entityTeam == myPlayer.iTeam)
-        {
-            //Show outlines
-            WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x4), 0, sizeof(float), 0); //red
-            WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x8), 0, sizeof(float), 0); //green
-            WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0xC), &two, sizeof(float), 0); //blue
-            WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x10), &alpha, sizeof(float), 0); //alpha
-        }
-        */
+
         WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x24), &bOccluded, sizeof(bool), 0);
         WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x25), &bUnoccluded, sizeof(bool), 0);
-        //need to find style offset somewhere near 0x44, 0x48
-        //WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x48), &glowStyle, sizeof(int), 0);
     }
 }
 
@@ -361,20 +340,6 @@ int main()
 			if (GetAsyncKeyState(VK_NUMPAD1))
 			{
 				bflash = !bflash;
-				if (bflash == false)
-				{
-					Beep(250, 200);
-				}
-				else
-				{
-					Beep(400, 200);
-				}
-			}
-
-			if (GetAsyncKeyState(VK_NUMPAD2))
-			{
-				bflash = !bflash;
-
 				playSound(bflash);
 			}
 			if (GetAsyncKeyState(VK_NUMPAD2))
@@ -389,7 +354,6 @@ int main()
 
 				playSound(bChams);
 			}
-
 			if (GetAsyncKeyState(VK_NUMPAD4))
 			{
 				bTrigger = !bTrigger;
@@ -399,29 +363,15 @@ int main()
 			if (GetAsyncKeyState(VK_NUMPAD5))
 			{
 				bDefuse = !bDefuse;
-				if (bDefuse == false)
-				{
-					Beep(250, 200);
-				}
-				else
-				{
-					Beep(400, 200);
-				}
+				playSound(bDefuse);
 			}
             if (GetAsyncKeyState(VK_NUMPAD6))
             {
                 bWall = !bWall;
-                if (bWall == false)
-                {
-                    Beep(250, 200);
-                }
-                else
-                {
-                    Beep(400, 200);
-                }
+                playSound(bWall);
             }
 			//Functioncall
-			if (bTrigger == true)
+			if (bTrigger)
 			{
 				if (GetAsyncKeyState(VK_LMENU)) //Alt Key
 				{
@@ -429,19 +379,19 @@ int main()
 				}
 			}
 
-			if (bflash == true)
+			if (bflash)
 			{
 				flash();
 			}
-			if (bRadar == true)
+			if (bRadar)
 			{
 				radar();
 			}
-			if (bDefuse == true)
+			if (bDefuse)
 			{
 				checkDefuse();
 			}
-            if (bWall == true)
+            if (bWall)
             {
                 wall();
             }
