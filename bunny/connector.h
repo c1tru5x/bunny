@@ -96,7 +96,7 @@ public:
 		while (!FindProcessName("csgo.exe", &__gameProcess)) Sleep(12);
 		while (!(getThreadByProcess(__gameProcess.th32ProcessID))) Sleep(12);
 		__HandleProcess = OpenProcess(PROCESS_ALL_ACCESS, false, __gameProcess.th32ProcessID);
-		char client[] = "client_panorama.dll";
+		char client[] = "client.dll";
 		char engine[] = "engine.dll";
 		char vgui[] = "vguimatsurface.dll";
 		while (__dwordClient == 0x0) __dwordClient = GetModuleNamePointer(client, __gameProcess.th32ProcessID);
