@@ -109,7 +109,7 @@ public:
 		char vgui[] = "vguimatsurface.dll";
 		while (__dwordClient == 0x0) __dwordClient = GetModuleNamePointer(client, __gameProcess.th32ProcessID);
 		while (__dwordEngine == 0x0) __dwordEngine = GetModuleNamePointer(engine, __gameProcess.th32ProcessID);
-		__HWNDCSgo = FindWindow(nullptr, "Counter-Strike: Global Offensive");
+		__HWNDCSgo = FindWindow(nullptr, "Counter-Strike: Global Offensive - Direct3D 9");
 	}
 };
 extern CHackProcess fProcess;

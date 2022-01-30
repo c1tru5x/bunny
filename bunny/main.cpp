@@ -8,7 +8,7 @@
 #include <filesystem>
 #include "sound.h"
 
-namespace fs = std::experimental::filesystem;
+namespace fs = std::filesystem;
 #pragma comment(lib, "urlmon.lib")
 
 using namespace OffsettParser;
@@ -256,7 +256,6 @@ void wall() {
     int enemyTeam = 0; //actually EntityTeam
 
     bool bOccluded = true;
-    bool bUnoccluded = false;
 
     float full = 1.f; //255
     float alpha = .7f;
@@ -278,15 +277,13 @@ void wall() {
         if (entity != NULL && ((enemyTeam != myPlayer.iTeam) || dangerMode)) //Find Enemy
         {
             //Show outlines
-            WriteProcessMemory(fProcess.__HandleProcess, (PBYTE *) (glowObj + (glowIndex * 0x38) + 0x4), &full,
+            WriteProcessMemory(fProcess.__HandleProcess, (PBYTE *) (glowObj + (glowIndex * 0x38) + 0x8), &full,
                                sizeof(float), 0); //red
-            WriteProcessMemory(fProcess.__HandleProcess, (PBYTE *) (glowObj + (glowIndex * 0x38) + 0x10), &alpha,
+            WriteProcessMemory(fProcess.__HandleProcess, (PBYTE *) (glowObj + (glowIndex * 0x38) + 0x14), &alpha,
                                sizeof(float), 0); //alpha
         }
 
-        WriteProcessMemory(fProcess.__HandleProcess, (PBYTE *) (glowObj + (glowIndex * 0x38) + 0x24), &bOccluded,
-                           sizeof(bool), 0);
-        WriteProcessMemory(fProcess.__HandleProcess, (PBYTE *) (glowObj + (glowIndex * 0x38) + 0x25), &bUnoccluded,
+        WriteProcessMemory(fProcess.__HandleProcess, (PBYTE *) (glowObj + (glowIndex * 0x38) + 0x28), &bOccluded,
                            sizeof(bool), 0);
     }
 }
