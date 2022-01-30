@@ -6,6 +6,7 @@
 #include <fstream>
 #include<string>
 #include <filesystem>
+#include "sound.h"
 
 namespace fs = std::experimental::filesystem;
 #pragma comment(lib, "urlmon.lib")
@@ -14,7 +15,7 @@ using namespace OffsettParser;
 
 CHackProcess fProcess;
 
-Offsets offsets;
+inline static Offsets offsets;
 
 bool bflash = false;
 bool bRadar = false;
@@ -23,6 +24,7 @@ bool bTrigger = false;
 bool bDefuse = false;
 bool bWall = false;
 bool masterSwitch = true;
+bool dangerMode = false;
 
 struct myPlayer_T {
     DWORD dwLocalP = 0x0;
@@ -153,7 +155,7 @@ void drawChams() {
                                        sizeof(rgbColorDefuser), 0);
                 } else {
                     WriteProcessMemory(fProcess.__HandleProcess, (PBYTE *) (entity + dwCham), &rgbColor,
-                                       sizeof(rgbColor), 0);
+                                       sizeof(rgbColor), nullptr);
                 }
             }
         }
@@ -210,7 +212,7 @@ void trigger() {
                               &enemyTeam, sizeof(int), nullptr);
         }
 
-        if (myPlayer.iCrossID > 0 && enemyTeam != myPlayer.iTeam) {
+        if (myPlayer.iCrossID > 0 && ((enemyTeam != myPlayer.iTeam) || dangerMode)) {
             Sleep(14);
             mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
             Sleep(10);
@@ -228,13 +230,13 @@ void checkDefuse() {
     for (int i = 0; i < 64; i++) {
         ReadProcessMemory(fProcess.__HandleProcess,
                           (PBYTE *) (fProcess.__dwordClient + offsets.signatures.dw_entity_list + (i * 0x10)), &entity,
-                          sizeof(DWORD), 0);
+                          sizeof(DWORD), nullptr);
         ReadProcessMemory(fProcess.__HandleProcess, (PBYTE *) (entity + offsets.netvars.m_i_team_num), &enemyTeam,
-                          sizeof(int), 0);
+                          sizeof(int), nullptr);
         ReadProcessMemory(fProcess.__HandleProcess, (PBYTE *) (entity + offsets.netvars.m_b_is_defusing), &defusing,
-                          sizeof(bool), 0);
+                          sizeof(bool), nullptr);
         ReadProcessMemory(fProcess.__HandleProcess, (PBYTE *) (entity + offsets.netvars.m_b_has_defuser), &hasKit,
-                          sizeof(bool), 0);
+                          sizeof(bool), nullptr);
         if (entity != NULL && enemyTeam != myPlayer.iTeam) {
             if (defusing && hasKit) {
                 Beep(550, 70); //lower interval if has defuserkit and higher freq
@@ -267,13 +269,13 @@ void wall() {
     for (int i = 0; i < 20; i++) {
         ReadProcessMemory(fProcess.__HandleProcess,
                           (PBYTE *) (fProcess.__dwordClient + offsets.signatures.dw_entity_list + (i * 0x10)), &entity,
-                          sizeof(DWORD), 0);
+                          sizeof(DWORD), nullptr);
         ReadProcessMemory(fProcess.__HandleProcess, (PBYTE *) (entity + offsets.netvars.m_i_team_num), &enemyTeam,
-                          sizeof(int), 0);
+                          sizeof(int), nullptr);
         ReadProcessMemory(fProcess.__HandleProcess, (PBYTE *) (entity + offsets.netvars.m_i_glow_index), &glowIndex,
-                          sizeof(int), 0);
+                          sizeof(int), nullptr);
 
-        if (entity != NULL && enemyTeam != myPlayer.iTeam) //Find Enemy
+        if (entity != NULL && ((enemyTeam != myPlayer.iTeam) || dangerMode)) //Find Enemy
         {
             //Show outlines
             WriteProcessMemory(fProcess.__HandleProcess, (PBYTE *) (glowObj + (glowIndex * 0x38) + 0x4), &full,
@@ -289,20 +291,11 @@ void wall() {
     }
 }
 
-void onSound() {
-    Beep(250, 200);
-}
-
-void offSound() {
-    Beep(400, 200);
-}
-
-void playSound(const bool state) {
-    if (!state) {
-        onSound();
-    } else {
-        offSound();
-    }
+void updateJson() {
+    std::string dwnld_URL = "https://raw.githubusercontent.com/frk1/hazedumper/master/csgo.json";
+    std::string savepath = "./hazedumperRepo/csgo.json";
+    fs::create_directories("./hazedumperRepo");
+    URLDownloadToFile(nullptr, dwnld_URL.c_str(), savepath.c_str(), 0, nullptr);
 }
 
 int main() {
@@ -328,6 +321,8 @@ int main() {
         std::cout << "[NUM4] Trigger use [ALT]" << std::endl;
         std::cout << "[NUM5] Check for Defuse" << std::endl;
         std::cout << "[NUM6] Walls" << std::endl;
+        std::cout << "[NUM9] Panik" << std::endl;
+        std::cout << "[NUM7] Dangerzone mode" << std::endl;
 
         while (!GetAsyncKeyState(VK_F11)) {
             //Read all the time.
@@ -335,35 +330,42 @@ int main() {
 
             if (GetAsyncKeyState(VK_NUMPAD1)) {
                 bflash = !bflash;
-                playSound(bflash);
+                sound::playSound(bflash);
             }
             if (GetAsyncKeyState(VK_NUMPAD2)) {
                 bRadar = !bRadar;
 
-                playSound(bRadar);
+                sound::playSound(bRadar);
             }
             if (GetAsyncKeyState(VK_NUMPAD3)) {
                 bChams = !bChams;
 
-                playSound(bChams);
+                sound::playSound(bChams);
             }
             if (GetAsyncKeyState(VK_NUMPAD4)) {
                 bTrigger = !bTrigger;
 
-                playSound(bTrigger);
+                sound::playSound(bTrigger);
             }
             if (GetAsyncKeyState(VK_NUMPAD5)) {
                 bDefuse = !bDefuse;
-                playSound(bDefuse);
+                sound::playSound(bDefuse);
             }
             if (GetAsyncKeyState(VK_NUMPAD6)) {
                 bWall = !bWall;
-                playSound(bWall);
+                sound::playSound(bWall);
             }
             if (GetAsyncKeyState(VK_NUMPAD9)) {
                 masterSwitch = !masterSwitch;
 
+                sound::playSound(!masterSwitch);
             }
+            if (GetAsyncKeyState(VK_NUMPAD7)) {
+                dangerMode = !dangerMode;
+
+                sound::playSound(dangerMode);
+            }
+
 
             if (masterSwitch) {
                 //Functioncall
@@ -387,16 +389,9 @@ int main() {
                     wall();
                 }
             }
-                drawChams(); //Needs to be outside so it can reset the color back
-                Sleep(1);
+            drawChams(); //Needs to be outside so it can reset the color back
+            Sleep(1);
         }
     }
     return 0;
-}
-
-void updateJson() {
-    std::string dwnld_URL = "https://raw.githubusercontent.com/frk1/hazedumper/master/csgo.json";
-    std::string savepath = "./hazedumperRepo/csgo.json";
-    fs::create_directories("./hazedumperRepo");
-    URLDownloadToFile(nullptr, dwnld_URL.c_str(), savepath.c_str(), 0, nullptr);
 }
