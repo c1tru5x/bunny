@@ -82,26 +82,34 @@ public:
 		TOKEN_PRIVILEGES priv;
 		LUID __LUID;
 		OpenProcessToken(__HandleProcess, TOKEN_ADJUST_PRIVILEGES, &__HandleToken);
-		LookupPrivilegeValue(0, "seDebugPrivilege", &__LUID);
+		LookupPrivilegeValue(nullptr, "seDebugPrivilege", &__LUID);
 		priv.PrivilegeCount = 1;
 		priv.Privileges[0].Luid = __LUID;
 		priv.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
-		AdjustTokenPrivileges(__HandleToken, false, &priv, 0, 0, 0);
+		AdjustTokenPrivileges(__HandleToken, false, &priv, 0, nullptr, nullptr);
 		CloseHandle(__HandleToken);
 		CloseHandle(__HandleProcess);
 	}
 	void RunProcess()
 	{
 		runSetDebugPrivs();
-		while (!FindProcessName("csgo.exe", &__gameProcess)) Sleep(12);
+		bool firstRound = true;
+		while (!FindProcessName("csgo.exe", &__gameProcess)) {
+		    if(firstRound)
+            {
+		        firstRound = false;
+                std::cout << "Process 'csgo.exe' not found!" << std::endl;
+            }
+            Sleep(12);
+        }
 		while (!(getThreadByProcess(__gameProcess.th32ProcessID))) Sleep(12);
 		__HandleProcess = OpenProcess(PROCESS_ALL_ACCESS, false, __gameProcess.th32ProcessID);
-		char client[] = "client_panorama.dll";
+		char client[] = "client.dll";
 		char engine[] = "engine.dll";
 		char vgui[] = "vguimatsurface.dll";
 		while (__dwordClient == 0x0) __dwordClient = GetModuleNamePointer(client, __gameProcess.th32ProcessID);
 		while (__dwordEngine == 0x0) __dwordEngine = GetModuleNamePointer(engine, __gameProcess.th32ProcessID);
-		__HWNDCSgo = FindWindow(NULL, "Counter-Strike: Global Offensive");
+		__HWNDCSgo = FindWindow(nullptr, "Counter-Strike: Global Offensive - Direct3D 9");
 	}
 };
 extern CHackProcess fProcess;
