@@ -19,6 +19,12 @@ bool bChams = false;
 bool bTrigger = false;
 bool bDefuse = false;
 bool bWall = false;
+bool bHop = false;
+
+constexpr auto onGround = 257;
+constexpr auto crouchedGround = 263;
+
+//Entity Spacing is now 0x14 instead of 0x10
 
 struct myPlayer_T
 {
@@ -27,6 +33,7 @@ struct myPlayer_T
 	int iTeam = 0;
 	int iHealth = 0;
 	int iCrossID = 0;
+	int iFlag = 0;
 	
 	void ReadInfo()
 	{
@@ -36,6 +43,7 @@ struct myPlayer_T
 		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + m_iTeamNum), &iTeam, sizeof(int), 0);
 		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + m_iCrosshairId), &iCrossID, sizeof(int), 0);
 		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + m_iHealth), &iHealth, sizeof(int), 0);
+		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + m_fFlags), &iFlag, sizeof(int), 0);
 	}
 }myPlayer;
 
@@ -87,8 +95,8 @@ void drawChams()
 		byte rgbColorEnemyLow[3] = {255,140,0}; //orange
 		byte rgbColorDefuser[3] = { 0, 0, 255 }; //pure blue
 		byte rgbColorEnemyDefuser[3] = { 255, 0, 0 }; //pure red
-		float brightness = 15.f; //65 is very bright
-		DWORD thisPtr = (int)(fProcess.__dwordEngine + model_ambient_min - 0x2c);
+		float brightness = 10.f; //65 is very bright
+		DWORD thisPtr = (int)(fProcess.__dwordEngine + model_ambient_min - 0x2c); //0x2c standard
 		DWORD xored = *(DWORD*)&brightness ^ thisPtr;
 		
 		for (int i = 0; i < 64; i++)
@@ -217,8 +225,11 @@ void checkDefuse()
 	}
 }
 
+
 void wall()
 {
+
+	//it now starts at 0x8 instead of 0x4 ???? 
     DWORD glowObj = 0x0;
     DWORD entity = 0x0;
 
@@ -226,11 +237,10 @@ void wall()
     int entityTeam = 0; //actually EntityTeam
 
     bool bOccluded = true;
-    bool bUnoccluded = false;
 
     float full = 1.f; //255
     float alpha = .7f;
-    //int glowStyle = 2;
+
 
     ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwGlowObjectManager), &glowObj, sizeof(DWORD), 0);
 
@@ -240,35 +250,45 @@ void wall()
         ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + m_iTeamNum), &entityTeam, sizeof(int), 0);
         ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + m_iGlowIndex), &glowIndex, sizeof(int), 0);
 
-        if (entity != NULL && entityTeam != myPlayer.iTeam) //Find Enemy
-        {
-            //Show outlines
-            WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x4), &full ,sizeof(float), 0); //red
-            //WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x8), 0, sizeof(float), 0); //green
-            //WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0xC), 0, sizeof(float), 0); //blue
-            WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x10), &alpha, sizeof(float), 0); //alpha
-        }
-        /*
-        else if (entity != NULL && entityTeam == myPlayer.iTeam)
-        {
-            //Show outlines
-            WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x4), 0, sizeof(float), 0); //red
-            WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x8), 0, sizeof(float), 0); //green
-            WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0xC), &two, sizeof(float), 0); //blue
-            WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x10), &alpha, sizeof(float), 0); //alpha
-        }
-        */
-        WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x24), &bOccluded, sizeof(bool), 0);
-        WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x25), &bUnoccluded, sizeof(bool), 0);
-        //need to find style offset somewhere near 0x44, 0x48
-        //WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x48), &glowStyle, sizeof(int), 0); 
+		if (entity != NULL && entityTeam != myPlayer.iTeam) //Find Enemy
+		{
+			//Show outlines
+			WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x8), &full, sizeof(float), 0); //red
+			//WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0xC), 0, sizeof(float), 0); //green
+			//WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x10), 0, sizeof(float), 0); //blue
+			WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x14), &alpha, sizeof(float), 0); //alpha
+		}     
+		//Enables Outline !!!! Don't delete
+        WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x28), &bOccluded, sizeof(bool), 0);
     }
+}
+
+void bunny()
+{
+	if (bHop)
+	{
+		int doJump = 5;
+		int stopJump = 4;
+
+		if (myPlayer.iFlag == onGround || myPlayer.iFlag == crouchedGround)
+		{
+			WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwForceJump), &doJump, sizeof(doJump), 0);
+		}
+		else
+		{
+			WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwForceJump), &stopJump, sizeof(stopJump), 0);
+		}
+	}
+	else
+	{
+		return;
+	}
 }
 
 int main(void)
 {
     fProcess.RunProcess();    //always forgetting this line...
-    std::cout << "Made by c1tru5x " << __DATE__ << std::endl;
+    std::cout << "Made by c1tru5x and maxiangelo -- Compiled: " << __DATE__ << std::endl;
 	std::cout << "-------------------------" << std::endl;
 	std::cout << "F11 to close!" << std::endl;
 	std::cout << "[NUM1] No Flash" << std::endl;
@@ -277,6 +297,7 @@ int main(void)
 	std::cout << "[NUM4] Trigger use [ALT]" << std::endl;
 	std::cout << "[NUM5] Check for Defuse" << std::endl;
     std::cout << "[NUM6] Walls" << std::endl;
+	std::cout << "[NUM7] BHOP // Yea its BAAAACK! // Phoon MODE" << std::endl;
 		
 		while (!GetAsyncKeyState(VK_F11))
 		{
@@ -342,6 +363,7 @@ int main(void)
 					Beep(400, 200);
 				}
 			}
+			
             if (GetAsyncKeyState(VK_NUMPAD6))
             {
                 bWall = !bWall;
@@ -354,6 +376,19 @@ int main(void)
                     Beep(400, 200);
                 }
             }
+			
+			if (GetAsyncKeyState(VK_NUMPAD7))
+			{
+				bHop = !bHop;
+				if (bHop == false)
+				{
+					Beep(250, 200);
+				}
+				else
+				{
+					Beep(400, 200);
+				}
+			}
 			//Functioncall
 			if (bTrigger == true)
 			{
@@ -374,10 +409,19 @@ int main(void)
 			{
 				checkDefuse();
 			}
+			
             if (bWall == true)
             {
                 wall();
             }
+			
+			if (bHop == true)
+			{
+				if (GetAsyncKeyState(VK_SPACE))
+				{
+					bunny();
+				}
+			}
 			drawChams(); //Needs to be outside so it can reset the color back
 			Sleep(1);
 	}
