@@ -270,7 +270,7 @@ void wall()
     for (int i = 0; i < 10; i++)
     {
         ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + offsets.signatures.dw_entity_list + (i * 0x10)), &entity, sizeof(DWORD), 0);
-        ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + entity + offsets.netvars.m_i_team_num), &entityTeam, sizeof(int), 0);
+        ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + offsets.netvars.m_i_team_num), &entityTeam, sizeof(int), 0);
         ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + offsets.netvars.m_i_glow_index), &glowIndex, sizeof(int), 0);
 
 		if (entity != NULL && entityTeam != myPlayer.iTeam) //Find Enemy
@@ -332,7 +332,7 @@ int main(void)
 	std::cout << "[NUM4] Trigger use [ALT]" << std::endl;
 	std::cout << "[NUM5] Check for Defuse" << std::endl;
     std::cout << "[NUM6] Walls" << std::endl;
-	std::cout << "[NUM7] BHOP // Yea its BAAAACK! // Phoon MODE" << std::endl;
+	std::cout << "[NUM7] BHOP" << std::endl;
 		
 		while (!GetAsyncKeyState(VK_F11))
 		{
