@@ -23,7 +23,10 @@
     <ClInclude Include="connector.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
-    <ClInclude Include="csgo.hpp">
+    <ClInclude Include="json.hpp">
+      <Filter>Headerdateien</Filter>
+    </ClInclude>
+    <ClInclude Include="OffsetParser.h">
       <Filter>Headerdateien</Filter>
     </ClInclude>
   </ItemGroup>

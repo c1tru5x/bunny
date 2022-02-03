@@ -7,11 +7,23 @@
 #include "connector.h"
 #include "timercpp.h"
 #include "csgo.hpp"
+#include "OffsetParser.h"
+#include "json.hpp"
+#include <filesystem>
+#include <fstream>
+#include <string>
+#include <cstdlib>
 
-using namespace hazedumper::netvars;
-using namespace hazedumper::signatures;
+
+//+++++++++++++++++Compile with C++17 and as 32 Bit!+++++++++++++++++++++++++
+
+namespace fs = std::filesystem;
+#pragma comment(lib, "urlmon.lib")
+using namespace OffsettParser;
 
 CHackProcess fProcess;
+
+static Offsets offsets;
 
 bool bflash = false;
 bool bRadar = false;
@@ -24,7 +36,7 @@ bool bHop = false;
 constexpr auto onGround = 257;
 constexpr auto crouchedGround = 263;
 
-//Entity Spacing is now 0x14 instead of 0x10
+void updateJson();
 
 struct myPlayer_T
 {
@@ -38,14 +50,25 @@ struct myPlayer_T
 	void ReadInfo()
 	{
 		//Read this all the time..
-		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwLocalPlayer), &dwLocalP, sizeof(DWORD), 0);
-		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + m_flFlashMaxAlpha), &flash, sizeof(int), 0);
-		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + m_iTeamNum), &iTeam, sizeof(int), 0);
-		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + m_iCrosshairId), &iCrossID, sizeof(int), 0);
-		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + m_iHealth), &iHealth, sizeof(int), 0);
-		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + m_fFlags), &iFlag, sizeof(int), 0);
+		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + offsets.signatures.dw_local_player), &dwLocalP, sizeof(DWORD), 0);
+		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + offsets.netvars.m_fl_flash_max_alpha), &flash, sizeof(int), 0);
+		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + offsets.netvars.m_i_team_num), &iTeam, sizeof(int), 0);
+		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + offsets.netvars.m_i_crosshair_id), &iCrossID, sizeof(int), 0);
+		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + offsets.netvars.m_i_health), &iHealth, sizeof(int), 0);
+		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + offsets.netvars.m_f_flags), &iFlag, sizeof(int), 0);
 	}
 }myPlayer;
+
+
+Offsets parseJson(const std::string& filePath) {
+	// read a JSON file
+	std::ifstream i(filePath);
+	json j;
+	i >> j;
+
+	OffsettParser::Offsets parsedData = nlohmann::json::parse(j.dump());
+	return parsedData;
+}
 
 void flash()
 {
@@ -55,7 +78,7 @@ void flash()
 	{
 		if (myPlayer.flash > .5f)
 		{
-			WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(myPlayer.dwLocalP + m_flFlashMaxAlpha), &newAlphaFlash, sizeof(newAlphaFlash), 0);
+			WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(myPlayer.dwLocalP + offsets.netvars.m_fl_flash_max_alpha), &newAlphaFlash, sizeof(newAlphaFlash), 0);
 		}
 	}
 }
@@ -69,11 +92,11 @@ void radar()
 		for (int i = 0; i < 64; i++)
 		{
 			//Radar
-			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwEntityList + (i * 0x10)), &entity, sizeof(DWORD), 0);
+			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + offsets.signatures.dw_entity_list + (i * 0x10)), &entity, sizeof(DWORD), 0);
 			//Spot
 			if (entity != NULL)
 			{
-				WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + m_bSpotted), &bSpot, sizeof(bool), 0);
+				WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + offsets.netvars.m_b_spotted), &bSpot, sizeof(bool), 0);
 			}
 		}
 	}
@@ -96,15 +119,15 @@ void drawChams()
 		byte rgbColorDefuser[3] = { 0, 0, 255 }; //pure blue
 		byte rgbColorEnemyDefuser[3] = { 255, 0, 0 }; //pure red
 		float brightness = 10.f; //65 is very bright
-		DWORD thisPtr = (int)(fProcess.__dwordEngine + model_ambient_min - 0x2c); //0x2c standard
+		DWORD thisPtr = (int)(fProcess.__dwordEngine + offsets.signatures.model_ambient_min - 0x2c); //0x2c standard
 		DWORD xored = *(DWORD*)&brightness ^ thisPtr;
 		
 		for (int i = 0; i < 64; i++)
 		{
-			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwEntityList + (i * 0x10)), &entity, sizeof(DWORD), 0);
-			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + m_iTeamNum), &entityTeam, sizeof(int), 0);
-			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + m_bHasDefuser), &hasKit, sizeof(bool), 0);
-			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + m_iHealth), &health, sizeof(bool), 0);
+			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + offsets.signatures.dw_entity_list + (i * 0x10)), &entity, sizeof(DWORD), 0);
+			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + offsets.netvars.m_i_team_num), &entityTeam, sizeof(int), 0);
+			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + offsets.netvars.m_b_has_defuser), &hasKit, sizeof(bool), 0);
+			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + offsets.netvars.m_i_health), &health, sizeof(bool), 0);
 			if (entity != NULL && entityTeam != myPlayer.iTeam)
 			{
 				//Defuse Boi red
@@ -144,7 +167,7 @@ void drawChams()
 				}
 			}
 		}
-		WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordEngine + model_ambient_min), &xored, sizeof(int), 0);
+		WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordEngine + offsets.signatures.model_ambient_min), &xored, sizeof(int), 0);
 	}
 	else
 	{
@@ -154,12 +177,12 @@ void drawChams()
 		byte rgbColor[3] = {255, 255, 255};
 		byte rgbColorEnemy[3] = {255, 255, 255};
 		float resetBrightness = 0.f;
-		DWORD thisPtr = (int)(fProcess.__dwordEngine + model_ambient_min - 0x2c);
+		DWORD thisPtr = (int)(fProcess.__dwordEngine + offsets.signatures.model_ambient_min - 0x2c);
 		DWORD resetXored = *(DWORD*)&resetBrightness ^ thisPtr;
 		for (int i = 0; i < 64; i++)
 		{
-			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwEntityList + (i * 0x10)), &entity, sizeof(DWORD), 0);
-			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + m_iTeamNum), &entityTeam, sizeof(int), 0);
+			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + offsets.signatures.dw_entity_list + (i * 0x10)), &entity, sizeof(DWORD), 0);
+			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + offsets.netvars.m_i_team_num), &entityTeam, sizeof(int), 0);
 			if (entity != NULL && entityTeam != myPlayer.iTeam)
 			{
 				WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwCham), &rgbColorEnemy, sizeof(rgbColorEnemy), 0);
@@ -169,7 +192,7 @@ void drawChams()
 				WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + dwCham), &rgbColor, sizeof(rgbColor), 0);
 			}
 		}
-		WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordEngine + model_ambient_min), &resetXored, sizeof(int), 0);
+		WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordEngine + offsets.signatures.model_ambient_min), &resetXored, sizeof(int), 0);
 	}	
 }
 
@@ -182,11 +205,11 @@ void Trigger()
 		int AimedAt = myPlayer.iCrossID;
 		if (AimedAt > 0 && AimedAt < 64) 
 		{
-			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwEntityList + (AimedAt - 1) * (0x10)), &aimedEntity, sizeof(DWORD), 0);
+			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + offsets.signatures.dw_entity_list + (AimedAt - 1) * (0x10)), &aimedEntity, sizeof(DWORD), 0);
 		}
 		for (int i = 0; i < 64; i++)
 		{
-			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(aimedEntity + m_iTeamNum), &entityTeam, sizeof(int), 0);
+			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(aimedEntity + offsets.netvars.m_i_team_num), &entityTeam, sizeof(int), 0);
 		}
 		if (myPlayer.iCrossID > 0 && entityTeam != myPlayer.iTeam)
 		{
@@ -207,10 +230,10 @@ void checkDefuse()
 
 	for (int i = 0; i < 64; i++)
 	{
-		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwEntityList + (i * 0x10)), &entity, sizeof(DWORD), 0);
-		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + m_iTeamNum), &entityTeam, sizeof(int), 0);
-		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + m_bIsDefusing), &defusing, sizeof(bool), 0);
-		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + m_bHasDefuser), &hasKit, sizeof(bool), 0);
+		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + offsets.signatures.dw_entity_list + (i * 0x10)), &entity, sizeof(DWORD), 0);
+		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + offsets.netvars.m_i_team_num), &entityTeam, sizeof(int), 0);
+		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + offsets.netvars.m_b_is_defusing), &defusing, sizeof(bool), 0);
+		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + offsets.netvars.m_b_has_defuser), &hasKit, sizeof(bool), 0);
 		if (entity != NULL && entityTeam != myPlayer.iTeam)
 		{
 			if (defusing && hasKit)
@@ -242,13 +265,13 @@ void wall()
     float alpha = .7f;
 
 
-    ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwGlowObjectManager), &glowObj, sizeof(DWORD), 0);
+    ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + offsets.signatures.dw_glow_object_manager), &glowObj, sizeof(DWORD), 0);
 
     for (int i = 0; i < 10; i++)
     {
-        ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwEntityList + (i * 0x10)), &entity, sizeof(DWORD), 0);
-        ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + m_iTeamNum), &entityTeam, sizeof(int), 0);
-        ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + m_iGlowIndex), &glowIndex, sizeof(int), 0);
+        ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + offsets.signatures.dw_entity_list + (i * 0x10)), &entity, sizeof(DWORD), 0);
+        ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + entity + offsets.netvars.m_i_team_num), &entityTeam, sizeof(int), 0);
+        ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + offsets.netvars.m_i_glow_index), &glowIndex, sizeof(int), 0);
 
 		if (entity != NULL && entityTeam != myPlayer.iTeam) //Find Enemy
 		{
@@ -272,11 +295,11 @@ void bunny()
 
 		if (myPlayer.iFlag == onGround || myPlayer.iFlag == crouchedGround)
 		{
-			WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwForceJump), &doJump, sizeof(doJump), 0);
+			WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + offsets.signatures.dw_force_jump), &doJump, sizeof(doJump), 0);
 		}
 		else
 		{
-			WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + dwForceJump), &stopJump, sizeof(stopJump), 0);
+			WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + offsets.signatures.dw_force_jump), &stopJump, sizeof(stopJump), 0);
 		}
 	}
 	else
@@ -285,8 +308,20 @@ void bunny()
 	}
 }
 
+void updateJson() 
+{
+	std::string dwnld_URL = "https://raw.githubusercontent.com/frk1/hazedumper/master/csgo.json";
+	std::string savepath = "./hazedumperRepo/csgo.json";
+	fs::create_directories("./hazedumperRepo");
+	URLDownloadToFile(nullptr, dwnld_URL.c_str(), savepath.c_str(), 0, nullptr);
+}
+
 int main(void)
 {
+	updateJson();
+	offsets = parseJson("./hazedumperRepo/csgo.json");
+
+
     fProcess.RunProcess();    //always forgetting this line...
     std::cout << "Made by c1tru5x and maxiangelo -- Compiled: " << __DATE__ << std::endl;
 	std::cout << "-------------------------" << std::endl;
