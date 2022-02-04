@@ -1,19 +1,13 @@
-#include <Windows.h>
-#include <iostream>
-#include <vector>
-#include <math.h>
-#include <thread>
 #include <chrono>
-#include "connector.h"
-#include "timercpp.h"
-#include "csgo.hpp"
-#include "OffsetParser.h"
-#include "json.hpp"
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
-#include <string>
-#include <cstdlib>
+#include <iostream>
+#include <Windows.h>
 
+#include "connector.h"
+#include "json.hpp"
+#include "OffsetParser.h"
 
 //+++++++++++++++++Compile with C++17 and as 32 Bit!+++++++++++++++++++++++++
 
@@ -324,7 +318,6 @@ int main(void)
 	updateJson();
 	offsets = parseJson("./hazedumperRepo/csgo.json");
 
-
     fProcess.RunProcess();    //always forgetting this line...
     std::cout << "Made by c1tru5x and maxiangelo -- Compiled: " << __DATE__ << std::endl;
 	std::cout << "-------------------------" << std::endl;
@@ -434,17 +427,6 @@ int main(void)
 				bAll = !bAll;
 				if (bAll == false)
 				{
-					bflash = true;
-					bRadar = true;
-					bChams = true;
-					bTrigger = true;
-					bDefuse = true;
-					bWall = true;
-					bHop = true;
-					Beep(250, 200);
-				}
-				else
-				{
 					bflash = false;
 					bRadar = false;
 					bChams = false;
@@ -452,6 +434,17 @@ int main(void)
 					bDefuse = false;
 					bWall = false;
 					bHop = false;
+					Beep(250, 200);
+				}
+				else
+				{
+					bflash = true;
+					bRadar = true;
+					bChams = true;
+					bTrigger = true;
+					bDefuse = true;
+					bWall = true;
+					bHop = true;
 					Beep(400, 200);
 				}
 			}
