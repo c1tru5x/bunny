@@ -313,24 +313,32 @@ void updateJson()
 	URLDownloadToFile(nullptr, dwnld_URL.c_str(), savepath.c_str(), 0, nullptr);
 }
 
+void updateMenu()
+{
+	system("cls");
+	std::cout << "Made by c1tru5x and maxiangelo -- Compiled: " << __DATE__ << std::endl;
+	std::cout << "-------------------------" << std::endl;
+	std::cout << "F11 to close!" << std::endl;
+	(bflash) ? std::cout << "on  | [NUM1] No Flash" << std::endl : std::cout << "off | [NUM1] No Flash" << std::endl;
+	(bRadar) ? std::cout << "on  | [NUM2] Radar" << std::endl : std::cout << "off | [NUM2] Radar" << std::endl;
+	(bChams) ? std::cout << "on  | [NUM3] Chams" << std::endl : std::cout << "off | [NUM3] Chams" << std::endl;
+	(bTrigger) ? std::cout << "on  | [NUM4] Trigger" << std::endl : std::cout << "off | [NUM4] Trigger" << std::endl;
+	(bDefuse) ? std::cout << "on  | [NUM5] Defuse Checker" << std::endl : std::cout << "off | [NUM5] Defuse Checker" << std::endl;
+	(bWall) ? std::cout << "on  | [NUM6] Walls" << std::endl : std::cout << "off | [NUM6] Walls" << std::endl;
+	(bHop) ? std::cout << "on  | [NUM7] BHOP" << std::endl : std::cout << "off | [NUM7] BHOP" << std::endl;
+	std::cout << "++++++" << std::endl;
+	(bAll) ? std::cout << "on  | [NUM0] Toggle Everything" << std::endl : std::cout << "off | [NUM0] Toggle Everything" << std::endl;
+}
+
 int main(void)
 {
 	updateJson();
 	offsets = parseJson("./hazedumperRepo/csgo.json");
 
     fProcess.RunProcess();    //always forgetting this line...
-    std::cout << "Made by c1tru5x and maxiangelo -- Compiled: " << __DATE__ << std::endl;
-	std::cout << "-------------------------" << std::endl;
-	std::cout << "F11 to close!" << std::endl;
-	std::cout << "[NUM1] No Flash" << std::endl;
-	std::cout << "[NUM2] Radar" << std::endl;
-	std::cout << "[NUM3] Chams" << std::endl;
-	std::cout << "[NUM4] Trigger use [ALT]" << std::endl;
-	std::cout << "[NUM5] Check for Defuse" << std::endl;
-    std::cout << "[NUM6] Walls" << std::endl;
-	std::cout << "[NUM7] BHOP" << std::endl;
-	std::cout << "[NUM0] TOGGLE ALL" << std::endl;
-		
+
+	updateMenu();
+    	
 		while (!GetAsyncKeyState(VK_F11))
 		{
             //Read all the time.
@@ -346,6 +354,7 @@ int main(void)
 				{
 					Beep(400, 200);
 				}
+				updateMenu();
 			}
 			if (GetAsyncKeyState(VK_NUMPAD2))
 			{
@@ -358,6 +367,7 @@ int main(void)
 				{
 					Beep(400, 200);
 				}
+				updateMenu();
 			}
 			if (GetAsyncKeyState(VK_NUMPAD3))
 			{
@@ -370,6 +380,7 @@ int main(void)
 				{
 					Beep(400, 200);
 				}
+				updateMenu();
 			}
 			if (GetAsyncKeyState(VK_NUMPAD4))
 			{
@@ -382,6 +393,7 @@ int main(void)
 				{
 					Beep(400, 200);
 				}
+				updateMenu();
 			}
 			if (GetAsyncKeyState(VK_NUMPAD5))
 			{
@@ -394,6 +406,7 @@ int main(void)
 				{
 					Beep(400, 200);
 				}
+				updateMenu();
 			}
 			
             if (GetAsyncKeyState(VK_NUMPAD6))
@@ -407,6 +420,7 @@ int main(void)
                 {
                     Beep(400, 200);
                 }
+				updateMenu();
             }
 			
 			if (GetAsyncKeyState(VK_NUMPAD7))
@@ -420,6 +434,7 @@ int main(void)
 				{
 					Beep(400, 200);
 				}
+				updateMenu();
 			}
 
 			if (GetAsyncKeyState(VK_NUMPAD0))
@@ -447,6 +462,7 @@ int main(void)
 					bHop = true;
 					Beep(400, 200);
 				}
+				updateMenu();
 			}
 			//Functioncall
 			if (bTrigger == true)
