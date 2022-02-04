@@ -33,6 +33,9 @@ bool bDefuse = false;
 bool bWall = false;
 bool bHop = false;
 
+//toggle everything
+bool bAll = false;
+
 constexpr auto onGround = 257;
 constexpr auto crouchedGround = 263;
 
@@ -333,6 +336,7 @@ int main(void)
 	std::cout << "[NUM5] Check for Defuse" << std::endl;
     std::cout << "[NUM6] Walls" << std::endl;
 	std::cout << "[NUM7] BHOP" << std::endl;
+	std::cout << "[NUM0] TOGGLE ALL" << std::endl;
 		
 		while (!GetAsyncKeyState(VK_F11))
 		{
@@ -421,6 +425,33 @@ int main(void)
 				}
 				else
 				{
+					Beep(400, 200);
+				}
+			}
+
+			if (GetAsyncKeyState(VK_NUMPAD0))
+			{
+				bAll = !bAll;
+				if (bAll == false)
+				{
+					bflash = true;
+					bRadar = true;
+					bChams = true;
+					bTrigger = true;
+					bDefuse = true;
+					bWall = true;
+					bHop = true;
+					Beep(250, 200);
+				}
+				else
+				{
+					bflash = false;
+					bRadar = false;
+					bChams = false;
+					bTrigger = false;
+					bDefuse = false;
+					bWall = false;
+					bHop = false;
 					Beep(400, 200);
 				}
 			}
