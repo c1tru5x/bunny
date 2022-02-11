@@ -26,7 +26,6 @@ bool bTrigger = false;
 bool bDefuse = false;
 bool bWall = false;
 bool bHop = false;
-bool bThirdP = false;
 
 //toggle everything
 bool bAll = false;
@@ -310,21 +309,6 @@ void bunny()
 	}
 }
 
-void ThirdPerson()
-{
-	int iObsON = 1;
-	int iObsOFF = 0;
-
-	if (bThirdP)
-	{
-		WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(myPlayer.dwLocalP + offsets.netvars.m_i_observer_mode), &iObsON, sizeof(iObsON), 0);
-	}
-	else
-	{
-		WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(myPlayer.dwLocalP + offsets.netvars.m_i_observer_mode), &iObsOFF, sizeof(iObsOFF), 0);
-	}
-}
-
 void allOn()
 {
 	bflash = true;
@@ -334,7 +318,6 @@ void allOn()
 	bDefuse = true;
 	bWall = true;
 	bHop = true;
-	bThirdP = true;
 }
 
 void allOff()
@@ -346,7 +329,6 @@ void allOff()
 	bDefuse = false;
 	bWall = false;
 	bHop = false;
-	bThirdP = false;
 }
 
 void updateJson() 
@@ -371,7 +353,6 @@ void updateMenu()
 	(bDefuse) ? std::cout << "on  | [NUM5] Defuse Checker" << std::endl : std::cout << "off | [NUM5] Defuse Checker" << std::endl;
 	(bWall) ? std::cout << "on  | [NUM6] Walls" << std::endl : std::cout << "off | [NUM6] Walls" << std::endl;
 	(bHop) ? std::cout << "on  | [NUM7] BHOP" << std::endl : std::cout << "off | [NUM7] BHOP" << std::endl;
-	(bThirdP) ? std::cout << "on  | [NUM8] Thirdperson" << std::endl : std::cout << "off | [NUM8] Thirdperson" << std::endl;
 }
 
 int main(void)
@@ -477,21 +458,6 @@ int main(void)
 				}
 				updateMenu();
 			}
-
-			if (GetAsyncKeyState(VK_NUMPAD8))
-			{
-				bThirdP = !bThirdP;
-				if (bThirdP == false)
-				{
-					Beep(250, 200);
-				}
-				else
-				{
-					Beep(400, 200);
-				}
-				updateMenu();
-			}
-
 			if (GetAsyncKeyState(VK_NUMPAD0))
 			{
 				bAll = !bAll;
@@ -507,8 +473,6 @@ int main(void)
 				}
 				updateMenu();
 			}
-
-		
 			//This needs to run all the Time
 			flash();
 			radar();
@@ -523,7 +487,6 @@ int main(void)
 			{
 				bunny();
 			}
-			ThirdPerson();
 			Sleep(1);
 	}
 	return 0;
