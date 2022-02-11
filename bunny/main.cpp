@@ -70,14 +70,19 @@ Offsets parseJson(const std::string& filePath) {
 
 void flash()
 {
-	float newAlphaFlash = .2f; //old val .2f
+	float newAlphaFlash = 90.f;
+	float maxAlpha = 255.f;
 
 	if (bflash)
 	{
-		if (myPlayer.flash > .5f)
+		if (myPlayer.flash > 100.f)
 		{
 			WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(myPlayer.dwLocalP + offsets.netvars.m_fl_flash_max_alpha), &newAlphaFlash, sizeof(newAlphaFlash), 0);
 		}
+	}
+	else
+	{
+		WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(myPlayer.dwLocalP + offsets.netvars.m_fl_flash_max_alpha), &maxAlpha, sizeof(maxAlpha), 0);
 	}
 }
 
@@ -122,7 +127,7 @@ void drawChams()
 		
 		for (int i = 0; i < 32; i++) //testing 1 to see if it skips localplayer.
 		{
-			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + offsets.signatures.dw_entity_list + (i * 0x10)), &entity, sizeof(DWORD), 0);
+			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + offsets.signatures.dw_entity_list + ((i - 1)* 0x10)), &entity, sizeof(DWORD), 0);
 			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + offsets.netvars.m_i_team_num), &entityTeam, sizeof(int), 0);
 			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + offsets.netvars.m_b_has_defuser), &hasKit, sizeof(bool), 0);
 			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + offsets.netvars.m_i_health), &health, sizeof(bool), 0);
@@ -297,16 +302,12 @@ void bunny()
 			WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + offsets.signatures.dw_force_jump), &stopJump, sizeof(stopJump), 0);
 		}
 	}
-	else
-	{
-		return;
-	}
 }
 
 void ThirdPerson()
 {
-	int iObsON = 0;
-	int iObsOFF = 1;
+	int iObsON = 1;
+	int iObsOFF = 0;
 
 	if (bThirdP)
 	{
@@ -509,10 +510,6 @@ int main(void)
 					Trigger();
 				}
 			}
-			if (bflash)
-			{
-				flash();
-			}
 			if (bRadar)
 			{
 				radar();
@@ -536,6 +533,7 @@ int main(void)
 			}
 			
 			//This needs to run all the Time
+			flash();
 			ThirdPerson();
 			drawChams(); //Needs to be outside so it can reset the color back
 			Sleep(1);
