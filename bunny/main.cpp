@@ -226,26 +226,29 @@ void Trigger()
 
 void checkDefuse()
 {
-	DWORD entity = 0x0;
-	int entityTeam = 0; //actually EntityTeam
-	bool defusing = 0;
-	bool hasKit = 0;
-
-	for (int i = 0; i < 64; i++)
+	if (bDefuse)
 	{
-		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + offsets.signatures.dw_entity_list + (i * 0x10)), &entity, sizeof(DWORD), 0);
-		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + offsets.netvars.m_i_team_num), &entityTeam, sizeof(int), 0);
-		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + offsets.netvars.m_b_is_defusing), &defusing, sizeof(bool), 0);
-		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + offsets.netvars.m_b_has_defuser), &hasKit, sizeof(bool), 0);
-		if (entity != NULL && entityTeam != myPlayer.iTeam)
+		DWORD entity = 0x0;
+		int entityTeam = 0; //actually EntityTeam
+		bool defusing = 0;
+		bool hasKit = 0;
+
+		for (int i = 0; i < 64; i++)
 		{
-			if (defusing && hasKit)
+			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + offsets.signatures.dw_entity_list + (i * 0x10)), &entity, sizeof(DWORD), 0);
+			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + offsets.netvars.m_i_team_num), &entityTeam, sizeof(int), 0);
+			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + offsets.netvars.m_b_is_defusing), &defusing, sizeof(bool), 0);
+			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + offsets.netvars.m_b_has_defuser), &hasKit, sizeof(bool), 0);
+			if (entity != NULL && entityTeam != myPlayer.iTeam)
 			{
-				Beep(550, 70); //lower interval if has defuserkit and higher freq
-			}
-			if (defusing && !hasKit)
-			{
-				Beep(350, 120);
+				if (defusing && hasKit)
+				{
+					Beep(550, 70); //lower interval if has defuserkit and higher freq
+				}
+				if (defusing && !hasKit)
+				{
+					Beep(350, 120);
+				}
 			}
 		}
 	}
@@ -254,36 +257,39 @@ void checkDefuse()
 
 void wall()
 {
-    DWORD glowObj = 0x0;
-    DWORD entity = 0x0;
+	if(bWall)
+	{ 
+		DWORD glowObj = 0x0;
+		DWORD entity = 0x0;
 
-    int glowIndex = 0;
-    int entityTeam = 0; //actually EntityTeam
+		int glowIndex = 0;
+		int entityTeam = 0; //actually EntityTeam
 
-    bool bOccluded = true;
+		bool bOccluded = true;
 
-    float full = 1.f; //255
-    float alpha = .7f;
+		float full = 1.f; //255
+		float alpha = .7f;
 
-    ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + offsets.signatures.dw_glow_object_manager), &glowObj, sizeof(DWORD), 0);
+		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + offsets.signatures.dw_glow_object_manager), &glowObj, sizeof(DWORD), 0);
 
-    for (int i = 0; i < 32; i++)
-    {
-        ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + offsets.signatures.dw_entity_list + (i * 0x10)), &entity, sizeof(DWORD), 0);
-        ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + offsets.netvars.m_i_team_num), &entityTeam, sizeof(int), 0);
-        ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + offsets.netvars.m_i_glow_index), &glowIndex, sizeof(int), 0);
-
-		if (entity != NULL && entityTeam != myPlayer.iTeam) //Find Enemy
+		for (int i = 0; i < 32; i++)
 		{
-			//Show outlines
-			WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x8), &full, sizeof(float), 0); //red
-			//WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0xC), 0, sizeof(float), 0); //green
-			//WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x10), 0, sizeof(float), 0); //blue
-			WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x14), &alpha, sizeof(float), 0); //alpha
-		}     
-		//Enables Outline !!!! Don't delete
-        WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x28), &bOccluded, sizeof(bool), 0);
-    }
+			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + offsets.signatures.dw_entity_list + (i * 0x10)), &entity, sizeof(DWORD), 0);
+			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + offsets.netvars.m_i_team_num), &entityTeam, sizeof(int), 0);
+			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + offsets.netvars.m_i_glow_index), &glowIndex, sizeof(int), 0);
+
+			if (entity != NULL && entityTeam != myPlayer.iTeam) //Find Enemy
+			{
+				//Show outlines
+				WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x8), &full, sizeof(float), 0); //red
+				//WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0xC), 0, sizeof(float), 0); //green
+				//WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x10), 0, sizeof(float), 0); //blue
+				WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x14), &alpha, sizeof(float), 0); //alpha
+			}     
+			//Enables Outline !!!! Don't delete
+			WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x28), &bOccluded, sizeof(bool), 0);
+		}
+	}
 }
 
 void bunny()
@@ -502,40 +508,22 @@ int main(void)
 				updateMenu();
 			}
 
-			//Functioncall
-			if (bTrigger)
-			{
-				if (GetAsyncKeyState(VK_LMENU)) //Alt Key
-				{
-					Trigger();
-				}
-			}
-			if (bRadar)
-			{
-				radar();
-			}
-			if (bDefuse)
-			{
-				checkDefuse();
-			}
-			
-            if (bWall)
-            {
-                wall();
-            }
-			
-			if (bHop == true)
-			{
-				if (GetAsyncKeyState(VK_SPACE))
-				{
-					bunny();
-				}
-			}
-			
+		
 			//This needs to run all the Time
 			flash();
+			radar();
+			drawChams();
+			if (GetAsyncKeyState(VK_LMENU)) //Alt Key
+			{
+				Trigger();
+			}
+			checkDefuse();
+			wall();
+			if (GetAsyncKeyState(VK_SPACE))
+			{
+				bunny();
+			}
 			ThirdPerson();
-			drawChams(); //Needs to be outside so it can reset the color back
 			Sleep(1);
 	}
 	return 0;
