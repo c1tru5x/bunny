@@ -26,6 +26,7 @@ bool bTrigger = false;
 bool bDefuse = false;
 bool bWall = false;
 bool bHop = false;
+bool bThirdP = false;
 
 //toggle everything
 bool bAll = false;
@@ -43,7 +44,8 @@ struct myPlayer_T
 	int iHealth = 0;
 	int iCrossID = 0;
 	int iFlag = 0;
-	
+	int iObserver = 0;
+
 	void ReadInfo()
 	{
 		//Read this all the time..
@@ -53,6 +55,7 @@ struct myPlayer_T
 		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + offsets.netvars.m_i_crosshair_id), &iCrossID, sizeof(int), 0);
 		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + offsets.netvars.m_i_health), &iHealth, sizeof(int), 0);
 		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + offsets.netvars.m_f_flags), &iFlag, sizeof(int), 0);
+		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + offsets.netvars.m_i_observer_mode), &iObserver, sizeof(int), 0);
 	}
 }myPlayer;
 
@@ -112,14 +115,14 @@ void drawChams()
 		//no need for alpha value because brightness does the work for us
 		byte rgbColor[3]= {33, 103, 255}; //cyan
 		byte rgbColorEnemy[3] = {255, 25, 155}; //pink
-		byte rgbColorEnemyLow[3] = {255,140,0}; //orange
-		byte rgbColorDefuser[3] = { 0, 0, 255 }; //pure blue
-		byte rgbColorEnemyDefuser[3] = { 255, 0, 0 }; //pure red
+		byte rgbColorEnemyLow[3] = {255, 140, 0}; //orange
+		byte rgbColorDefuser[3] = {0, 0, 255}; //pure blue
+		byte rgbColorEnemyDefuser[3] = {255, 0, 0}; //pure red
 		float brightness = 10.f; //65 is very bright
 		DWORD thisPtr = (int)(fProcess.__dwordEngine + offsets.signatures.model_ambient_min - 0x2c); //0x2c standard
 		DWORD xored = *(DWORD*)&brightness ^ thisPtr;
 		
-		for (int i = 0; i < 64; i++)
+		for (int i = 0; i < 32; i++) //testing 1 to see if it skips localplayer.
 		{
 			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + offsets.signatures.dw_entity_list + (i * 0x10)), &entity, sizeof(DWORD), 0);
 			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + offsets.netvars.m_i_team_num), &entityTeam, sizeof(int), 0);
@@ -176,9 +179,9 @@ void drawChams()
 		float resetBrightness = 0.f;
 		DWORD thisPtr = (int)(fProcess.__dwordEngine + offsets.signatures.model_ambient_min - 0x2c);
 		DWORD resetXored = *(DWORD*)&resetBrightness ^ thisPtr;
-		for (int i = 0; i < 64; i++)
+		for (int i = 0; i < 32; i++)
 		{
-			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + offsets.signatures.dw_entity_list + (i * 0x10)), &entity, sizeof(DWORD), 0);
+			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + offsets.signatures.dw_entity_list + ((i - 1) * 0x10)), &entity, sizeof(DWORD), 0);
 			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + offsets.netvars.m_i_team_num), &entityTeam, sizeof(int), 0);
 			if (entity != NULL && entityTeam != myPlayer.iTeam)
 			{
@@ -200,11 +203,11 @@ void Trigger()
 	if (bTrigger)
 	{
 		int AimedAt = myPlayer.iCrossID;
-		if (AimedAt > 0 && AimedAt < 64) 
+		if (AimedAt > 0 && AimedAt < 32) 
 		{
 			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + offsets.signatures.dw_entity_list + (AimedAt - 1) * (0x10)), &aimedEntity, sizeof(DWORD), 0);
 		}
-		for (int i = 0; i < 64; i++)
+		for (int i = 0; i < 32; i++)
 		{
 			ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(aimedEntity + offsets.netvars.m_i_team_num), &entityTeam, sizeof(int), 0);
 		}
@@ -248,8 +251,6 @@ void checkDefuse()
 
 void wall()
 {
-
-	//it now starts at 0x8 instead of 0x4 ???? 
     DWORD glowObj = 0x0;
     DWORD entity = 0x0;
 
@@ -261,10 +262,9 @@ void wall()
     float full = 1.f; //255
     float alpha = .7f;
 
-
     ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + offsets.signatures.dw_glow_object_manager), &glowObj, sizeof(DWORD), 0);
 
-    for (int i = 0; i < 10; i++)
+    for (int i = 0; i < 32; i++)
     {
         ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(fProcess.__dwordClient + offsets.signatures.dw_entity_list + (i * 0x10)), &entity, sizeof(DWORD), 0);
         ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(entity + offsets.netvars.m_i_team_num), &entityTeam, sizeof(int), 0);
@@ -305,6 +305,45 @@ void bunny()
 	}
 }
 
+void ThirdPerson()
+{
+	int iObsON = 0;
+	int iObsOFF = 1;
+
+	if (bThirdP)
+	{
+		WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(myPlayer.dwLocalP + offsets.netvars.m_i_observer_mode), &iObsON, sizeof(iObsON), 0);
+	}
+	else
+	{
+		WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(myPlayer.dwLocalP + offsets.netvars.m_i_observer_mode), &iObsOFF, sizeof(iObsOFF), 0);
+	}
+}
+
+void allOn()
+{
+	bflash = true;
+	bRadar = true;
+	bChams = true;
+	bTrigger = true;
+	bDefuse = true;
+	bWall = true;
+	bHop = true;
+	bThirdP = true;
+}
+
+void allOff()
+{
+	bflash = false;
+	bRadar = false;
+	bChams = false;
+	bTrigger = false;
+	bDefuse = false;
+	bWall = false;
+	bHop = false;
+	bThirdP = false;
+}
+
 void updateJson() 
 {
 	std::string dwnld_URL = "https://raw.githubusercontent.com/frk1/hazedumper/master/csgo.json";
@@ -319,6 +358,7 @@ void updateMenu()
 	std::cout << "Made by c1tru5x and maxiangelo -- Compiled: " << __DATE__ << std::endl;
 	std::cout << "-------------------------" << std::endl;
 	std::cout << "F11 to close!" << std::endl;
+	(bAll) ? std::cout << "on  | [NUM0] Toggle Everything" << std::endl : std::cout << "off | [NUM0] Toggle Everything" << std::endl;
 	(bflash) ? std::cout << "on  | [NUM1] No Flash" << std::endl : std::cout << "off | [NUM1] No Flash" << std::endl;
 	(bRadar) ? std::cout << "on  | [NUM2] Radar" << std::endl : std::cout << "off | [NUM2] Radar" << std::endl;
 	(bChams) ? std::cout << "on  | [NUM3] Chams" << std::endl : std::cout << "off | [NUM3] Chams" << std::endl;
@@ -326,8 +366,7 @@ void updateMenu()
 	(bDefuse) ? std::cout << "on  | [NUM5] Defuse Checker" << std::endl : std::cout << "off | [NUM5] Defuse Checker" << std::endl;
 	(bWall) ? std::cout << "on  | [NUM6] Walls" << std::endl : std::cout << "off | [NUM6] Walls" << std::endl;
 	(bHop) ? std::cout << "on  | [NUM7] BHOP" << std::endl : std::cout << "off | [NUM7] BHOP" << std::endl;
-	std::cout << "++++++" << std::endl;
-	(bAll) ? std::cout << "on  | [NUM0] Toggle Everything" << std::endl : std::cout << "off | [NUM0] Toggle Everything" << std::endl;
+	(bThirdP) ? std::cout << "on  | [NUM8] Thirdperson" << std::endl : std::cout << "off | [NUM8] Thirdperson" << std::endl;
 }
 
 int main(void)
@@ -336,12 +375,11 @@ int main(void)
 	offsets = parseJson("./hazedumperRepo/csgo.json");
 
     fProcess.RunProcess();    //always forgetting this line...
-
 	updateMenu();
     	
 		while (!GetAsyncKeyState(VK_F11))
 		{
-            //Read all the time.
+			//Read all the time.
 			myPlayer.ReadInfo();
 			if (GetAsyncKeyState(VK_NUMPAD1))
 			{
@@ -408,7 +446,6 @@ int main(void)
 				}
 				updateMenu();
 			}
-			
             if (GetAsyncKeyState(VK_NUMPAD6))
             {
                 bWall = !bWall;
@@ -422,11 +459,24 @@ int main(void)
                 }
 				updateMenu();
             }
-			
 			if (GetAsyncKeyState(VK_NUMPAD7))
 			{
 				bHop = !bHop;
 				if (bHop == false)
+				{
+					Beep(250, 200);
+				}
+				else
+				{
+					Beep(400, 200);
+				}
+				updateMenu();
+			}
+
+			if (GetAsyncKeyState(VK_NUMPAD8))
+			{
+				bThirdP = !bThirdP;
+				if (bThirdP == false)
 				{
 					Beep(250, 200);
 				}
@@ -442,50 +492,39 @@ int main(void)
 				bAll = !bAll;
 				if (bAll == false)
 				{
-					bflash = false;
-					bRadar = false;
-					bChams = false;
-					bTrigger = false;
-					bDefuse = false;
-					bWall = false;
-					bHop = false;
+					allOff();
 					Beep(250, 200);
 				}
 				else
 				{
-					bflash = true;
-					bRadar = true;
-					bChams = true;
-					bTrigger = true;
-					bDefuse = true;
-					bWall = true;
-					bHop = true;
+					allOn();
 					Beep(400, 200);
 				}
 				updateMenu();
 			}
+
 			//Functioncall
-			if (bTrigger == true)
+			if (bTrigger)
 			{
 				if (GetAsyncKeyState(VK_LMENU)) //Alt Key
 				{
 					Trigger();
 				}
 			}
-			if (bflash == true)
+			if (bflash)
 			{
 				flash();
 			}
-			if (bRadar == true)
+			if (bRadar)
 			{
 				radar();
 			}
-			if (bDefuse == true)
+			if (bDefuse)
 			{
 				checkDefuse();
 			}
 			
-            if (bWall == true)
+            if (bWall)
             {
                 wall();
             }
@@ -497,6 +536,9 @@ int main(void)
 					bunny();
 				}
 			}
+			
+			//This needs to run all the Time
+			ThirdPerson();
 			drawChams(); //Needs to be outside so it can reset the color back
 			Sleep(1);
 	}
