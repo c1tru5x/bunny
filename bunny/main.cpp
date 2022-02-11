@@ -44,7 +44,6 @@ struct myPlayer_T
 	int iHealth = 0;
 	int iCrossID = 0;
 	int iFlag = 0;
-	int iObserver = 0;
 
 	void ReadInfo()
 	{
@@ -55,7 +54,6 @@ struct myPlayer_T
 		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + offsets.netvars.m_i_crosshair_id), &iCrossID, sizeof(int), 0);
 		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + offsets.netvars.m_i_health), &iHealth, sizeof(int), 0);
 		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + offsets.netvars.m_f_flags), &iFlag, sizeof(int), 0);
-		ReadProcessMemory(fProcess.__HandleProcess, (PBYTE*)(dwLocalP + offsets.netvars.m_i_observer_mode), &iObserver, sizeof(int), 0);
 	}
 }myPlayer;
 
