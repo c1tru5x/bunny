@@ -9,6 +9,19 @@
 #include "json.hpp"
 #include "OffsetParser.h"
 
+//Key Mapping
+#define VK_ALT VK_MENU
+#define VK_0 0x30 
+#define VK_1 0x31 
+#define VK_2 0x32
+#define VK_3 0x33
+#define VK_4 0x34
+#define VK_5 0x35
+#define VK_6 0x36
+#define VK_7 0x37
+#define VK_8 0x38
+#define VK_9 0x39
+
 //+++++++++++++++++Compile with C++17 and as 32 Bit!+++++++++++++++++++++++++
 
 namespace fs = std::filesystem;
@@ -265,6 +278,7 @@ void wall()
 		int entityTeam = 0; //actually EntityTeam
 
 		bool bOccluded = true;
+		bool bUnOccluded = false;
 
 		float full = 1.f; //255
 		float alpha = .7f;
@@ -287,6 +301,7 @@ void wall()
 			}     
 			//Enables Outline !!!! Don't delete
 			WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x28), &bOccluded, sizeof(bool), 0);
+			WriteProcessMemory(fProcess.__HandleProcess, (PBYTE*)(glowObj + (glowIndex * 0x38) + 0x29), &bUnOccluded, sizeof(bool), 0);
 		}
 	}
 }
@@ -344,6 +359,7 @@ void updateMenu()
 	system("cls");
 	std::cout << "Made by c1tru5x and maxiangelo -- Compiled: " << __DATE__ << std::endl;
 	std::cout << "-------------------------" << std::endl;
+	std::cout << "If no numpad available then use [ALT+Number]" << std::endl;
 	std::cout << "F11 to close!" << std::endl;
 	(bAll) ? std::cout << "on  | [NUM0] Toggle Everything" << std::endl : std::cout << "off | [NUM0] Toggle Everything" << std::endl;
 	(bflash) ? std::cout << "on  | [NUM1] No Flash" << std::endl : std::cout << "off | [NUM1] No Flash" << std::endl;
@@ -367,7 +383,7 @@ int main(void)
 		{
 			//Read all the time.
 			myPlayer.ReadInfo();
-			if (GetAsyncKeyState(VK_NUMPAD1))
+			if (GetAsyncKeyState(VK_NUMPAD1) || (GetAsyncKeyState(VK_ALT) && GetAsyncKeyState(VK_1)))
 			{
 				bflash = !bflash;
 				if (bflash == false)
@@ -380,7 +396,7 @@ int main(void)
 				}
 				updateMenu();
 			}
-			if (GetAsyncKeyState(VK_NUMPAD2))
+			if (GetAsyncKeyState(VK_NUMPAD2) || (GetAsyncKeyState(VK_ALT) && GetAsyncKeyState(VK_2)))
 			{
 				bRadar = !bRadar;
 				if (bRadar == false)
@@ -393,7 +409,7 @@ int main(void)
 				}
 				updateMenu();
 			}
-			if (GetAsyncKeyState(VK_NUMPAD3))
+			if (GetAsyncKeyState(VK_NUMPAD3) || (GetAsyncKeyState(VK_ALT) && GetAsyncKeyState(VK_3)))
 			{
 				bChams = !bChams;
 				if (bChams == false)
@@ -406,7 +422,7 @@ int main(void)
 				}
 				updateMenu();
 			}
-			if (GetAsyncKeyState(VK_NUMPAD4))
+			if (GetAsyncKeyState(VK_NUMPAD4) || (GetAsyncKeyState(VK_ALT) && GetAsyncKeyState(VK_4)))
 			{
 				bTrigger = !bTrigger;
 				if (bTrigger == false)
@@ -419,7 +435,7 @@ int main(void)
 				}
 				updateMenu();
 			}
-			if (GetAsyncKeyState(VK_NUMPAD5))
+			if (GetAsyncKeyState(VK_NUMPAD5) || (GetAsyncKeyState(VK_ALT) && GetAsyncKeyState(VK_5)))
 			{
 				bDefuse = !bDefuse;
 				if (bDefuse == false)
@@ -432,7 +448,7 @@ int main(void)
 				}
 				updateMenu();
 			}
-            if (GetAsyncKeyState(VK_NUMPAD6))
+            if (GetAsyncKeyState(VK_NUMPAD6) || (GetAsyncKeyState(VK_ALT) && GetAsyncKeyState(VK_6)))
             {
                 bWall = !bWall;
                 if (bWall == false)
@@ -445,7 +461,7 @@ int main(void)
                 }
 				updateMenu();
             }
-			if (GetAsyncKeyState(VK_NUMPAD7))
+			if (GetAsyncKeyState(VK_NUMPAD7) || (GetAsyncKeyState(VK_ALT) && GetAsyncKeyState(VK_7)))
 			{
 				bHop = !bHop;
 				if (bHop == false)
@@ -458,7 +474,7 @@ int main(void)
 				}
 				updateMenu();
 			}
-			if (GetAsyncKeyState(VK_NUMPAD0))
+			if (GetAsyncKeyState(VK_NUMPAD0) || (GetAsyncKeyState(VK_ALT) && GetAsyncKeyState(VK_0)))
 			{
 				bAll = !bAll;
 				if (bAll == false)
